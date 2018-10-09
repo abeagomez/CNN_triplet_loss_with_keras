@@ -7,17 +7,8 @@ import triplets_mining
 from keras.layers import Lambda
 import numpy as np
 
-
-def distance(x, y):
-    return K.sqrt(K.sum(K.square(x - y), axis=-1))
-
-def triplets_max(dist_anchor_positive, dist_anchor_negative, margin):
-    x = (dist_anchor_positive - dist_anchor_negative + margin)
-    return tf.maximum(x, 0)
-
-
 def triplet_loss(x,y):
-    anchor, positive, negative = tf.split(y,3)
+    anchor, positive, negative = tf.split(y, 3)
 
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
@@ -28,54 +19,32 @@ def triplet_loss(x,y):
     return loss
 
 def build_model(img_x, img_y):
-    #input_shape = (img_x, img_y, 3)
     input_shape = Input(shape=(img_x, img_y, 3))
 
-    #Modelo secuencial#########################################################
-    # reid_model = Sequential()
-    # reid_model.add(Conv2D(32, kernel_size=(3, 3), strides=(1, 1),
-    #              activation='relu',
-    #              input_shape=input_shape))
-    # reid_model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-    # reid_model.add(Conv2D(32, (3, 3), strides=(1, 1), activation='relu'))
-    # reid_model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-    # reid_model.add(Conv2D(32, (3, 3), strides=(1, 1), activation='relu'))
-    # reid_model.add(Conv2D(32, (3, 3), strides=(2, 2), activation='relu'))
-    # reid_model.add(MaxPooling2D(pool_size=(1, 1), strides=(1, 1)))
-    # reid_model.add(Flatten())
-    # reid_model.add(Dense(4024, activation='relu'))
-    # reid_model.add(Dense(512, activation='sigmoid'))
-    ###########################################################################
-    c0 = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), activation='relu') (input_shape)
-    m0 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2)) (c0)
-    f = Flatten()(m0)
-    d1 = Dense(4024, activation='relu')(f)
-    d2 = Dense(512, activation='sigmoid')(d1)
+    conv_0 = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), activation='relu') (input_shape)
+    max_p0 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2)) (conv_0)
+    conv_1 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (max_p0)
+    max_p1 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(conv_1)
+    conv_2 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (max_p1)
+    conv_3 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (conv_2)
+    max_p2 = MaxPooling2D(pool_size=(1, 1), strides=(1, 1)) (conv_3)
+    flatten = Flatten() (max_p2)
+    dense1 = Dense(4024, activation='relu')(flatten)
+    dense2 = Dense(512, activation='sigmoid')(dense1)
 
     anchor = Input(shape=(128, 254, 3))
     positive = Input(shape=(128, 254, 3))
     negative = Input(shape=(128, 254, 3))
 
-    reid_model = Model(inputs=[input_shape], outputs=[d2])
+    reid_model = Model(inputs=[input_shape], outputs=[dense2])
 
     anchor_embed = reid_model(anchor)
     positive_embed = reid_model(positive)
     negative_embed = reid_model(negative)
-    print(anchor_embed)
-    #dist_anchor_positive = distance(anchor_embed, positive_embed)
-    #dist_anchor_negative = distance(anchor_embed, negative_embed)
-
-    #loss = triplets_max(dist_anchor_positive, dist_anchor_negative, 0.05)
-
-    #loss = merge([anchor_embed, positive_embed, negative_embed],
-    #             mode=triplet_loss, output_shape=(1,))
 
     merged_output = concatenate([anchor_embed, positive_embed, negative_embed])
     model = Model(inputs=[anchor, positive, negative], outputs=merged_output)
     model.compile(optimizer='Adam', loss=triplet_loss, metrics=[triplet_loss])
-
-    #model = Model(inputs=[anchor, positive, negative], outputs=loss)
-    #model.compile(optimizer='Adam', loss='mean_absolute_error')
     return model
 
 
@@ -100,6 +69,7 @@ x_negative /= 255
 model = build_model(img_x, img_y)
 # Print the model structure
 print(model.summary())
+
 model.fit(x=[x_anchor, x_positive, x_negative],y = np.ones(l),
           batch_size=64,
           epochs=10,
