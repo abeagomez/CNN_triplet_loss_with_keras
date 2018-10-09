@@ -17,9 +17,7 @@ def triplets_max(dist_anchor_positive, dist_anchor_negative, margin):
 
 
 def triplet_loss(x,y):
-    print(x)
-    print(y)
-    anchor, positive, negative = x
+    anchor, positive, negative = tf.split(y,3)
 
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
@@ -86,7 +84,7 @@ img_x, img_y = 128, 254
 #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
 #Cada posicion es una imagen RGB de 128(ancho)x254(alto)
 x_anchor, x_positive, x_negative = triplets_mining.get_random_triplets()
-
+l = len(x_anchor)
 x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
 x_anchor = x_anchor.astype('float32')
 x_anchor /= 255
@@ -102,7 +100,7 @@ x_negative /= 255
 model = build_model(img_x, img_y)
 # Print the model structure
 print(model.summary())
-model.fit(x=[x_anchor, x_positive, x_negative],y = np.ones(128),
+model.fit(x=[x_anchor, x_positive, x_negative],y = np.ones(l),
           batch_size=64,
           epochs=10,
           verbose=1)
