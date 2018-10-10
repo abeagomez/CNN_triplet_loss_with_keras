@@ -1,3 +1,4 @@
+import keras
 import keras.backend as K
 import tensorflow as tf
 from keras import Input, Model
@@ -8,8 +9,9 @@ from keras.layers import Lambda
 import numpy as np
 
 def triplet_loss(x,y):
-    anchor, positive, negative = tf.split(y, 3)
-
+    anchor, positive, negative = tf.split(y, 3, axis = 1)
+    #print("Anchor in loss")
+    #print(K.eval(anchor))
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
 
@@ -48,6 +50,25 @@ def build_model(img_x, img_y):
     return model
 
 
+class AccuracyHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.acc = []
+
+    def on_epoch_end(self, batch, logs={}):
+        self.acc.append(logs.get('acc'))
+
+
+class CollectWeightCallback(keras.callbacks.Callback):
+    def __init__(self, layer_index):
+        super(CollectWeightCallback, self).__init__()
+        self.layer_index = layer_index
+        self.weights = []
+
+    def on_epoch_end(self, epoch, logs=None):
+        layer = self.model.layers[self.layer_index]
+        self.weights.append(layer.get_weights())
+
+
 num_epochs = 10
 img_x, img_y = 128, 254
 #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
@@ -70,14 +91,25 @@ model = build_model(img_x, img_y)
 # Print the model structure
 print(model.summary())
 
-model.fit(x=[x_anchor, x_positive, x_negative],y = np.ones(l),
-          batch_size=64,
-          epochs=10,
-          verbose=1)
-# for epoch in range(num_epochs):
-#     print('Epoch %s' % epoch)
-
-#     model.fit([x_anchor, x_positive, x_negative],
+history = AccuracyHistory()
+cbk = CollectWeightCallback(layer_index=-1)
+# model.fit(x=[x_anchor, x_positive, x_negative],y = np.zeros(l),
 #             batch_size=64,
-#             epochs=1,
-#             verbose=1)
+#             epochs=10,
+#             verbose=1,
+#             callbacks=[history, cbk])
+
+inp = model.input
+for epoch in range(num_epochs):
+    print('Epoch %s' % epoch)
+
+    model.fit([x_anchor, x_positive, x_negative],
+            y=np.zeros(l),
+            batch_size=64,
+            epochs=1,
+            verbose=1,
+            callbacks=[history])
+    # all layer outputs
+    outputs = model.layers[-1].output
+    #functor = K.function([inp, K.learning_phase()], outputs)
+    print(outputs)
