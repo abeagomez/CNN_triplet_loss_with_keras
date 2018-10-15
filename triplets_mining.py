@@ -36,7 +36,6 @@ def get_hard_triplets(triplets, data_type):
     positive_set = []
     negative_set = []
     data_dict = build_dict()
-    print(data_dict[0][0])
     while triplets > 0:
         anchor_dic_key = rd.randint(0, len(data_dict)-1)
         anchor_value_len = len(data_dict[anchor_dic_key])
@@ -63,9 +62,7 @@ def get_hard_triplets(triplets, data_type):
 
 def build_dict():
     output_data = np.genfromtxt('outputs_for_mining.csv', delimiter=',')
-    print(output_data[0])
     binary_output_data = transform_to_binary(output_data)
-    print(output_data[0])
     training_data = data_reader.get_training_set()
     images, labels = training_data[0], training_data[1]
     data_dict = {}
@@ -77,7 +74,7 @@ def build_dict():
                 (output_data[i], binary_output_data[i], images[i])]
     return data_dict
 
-get_hard_triplets(10,0)
+#get_hard_triplets(10,0)
 #build_dict()
 
 # t = output_data[0]
