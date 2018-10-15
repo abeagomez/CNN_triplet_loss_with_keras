@@ -7,7 +7,7 @@ import numpy as np
 import keras
 from keras.datasets import mnist
 from keras.layers import Dense, Flatten
-from keras.layers import Conv2D, MaxPooling2D
+from keras.layers import Conv2D, MaxPooling2D, Lambda
 from keras.models import Sequential
 from keras import Input, Model
 import keras.backend as K
@@ -41,15 +41,23 @@ model.add(Flatten())
 model.add(Dense(4024, activation='relu'))
 model.add(Dense(512, activation='sigmoid'))
 
-while(epochs > 6):
-    #r = model.predict(x_train,
-    #                    batch_size=batch_size,
-    #                    verbose=1)
-    r = model.train_on_batch(x_train, x_labels)
-    print(r[0])
-    epochs -= 1
+
+#Testing fragment
+# while(epochs > 6):
+#     r = model.predict(x_train,
+#                         batch_size=batch_size,
+#                         verbose=1)
+#     #r = model.train_on_batch(x_train, x_labels)
+#     print(r[0])
+#     epochs -= 1
+
+r = model.predict(x_train,
+                  batch_size=batch_size,
+                  verbose=1)
+#print(r[0])
+
 #Save output to CSV
-#np.savetxt("outputs_for_mining.csv", r , delimiter=",")
+np.savetxt("outputs_for_mining.csv", r , delimiter=",")
 
 
 

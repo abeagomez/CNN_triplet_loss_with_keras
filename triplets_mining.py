@@ -14,13 +14,7 @@ def triplet_loss(a, p, n, data_type):
         return max(np.linalg.norm(a-p) - np.linalg.norm(a-n), 0)
 
 def transform_to_binary(data):
-    for output in data:
-        for i in range(0,len(output)):
-            if output[i] < 0.5:
-                output[i] = 0
-            else:
-                output[i] = 1
-    return data
+    return [[0 if i < 0.5 else 1 for i in output] for output in data]
 
 #Set to 50 random triplets
 def get_random_triplets():
@@ -42,40 +36,50 @@ def get_hard_triplets(triplets, data_type):
     positive_set = []
     negative_set = []
     data_dict = build_dict()
+    print(data_dict[0][0])
     while triplets > 0:
         anchor_dic_key = rd.randint(0, len(data_dict)-1)
         anchor_value_len = len(data_dict[anchor_dic_key])
-        anchor = data_dict[anchor_dic_key][rd.randint(
-            0, anchor_value_len -1)][data_type]
-        positive = data_dict[anchor_dic_key][rd.randint(
-            0, anchor_value_len -1)][data_type]
+        anchor_value = data_dict[anchor_dic_key][rd.randint(
+            0, anchor_value_len -1)]
+        anchor = anchor_value[data_type]
+        anchor_image = anchor_value[2]
+        positive_value = data_dict[anchor_dic_key][rd.randint(
+            0, anchor_value_len -1)]
+        positive = positive_value[data_type]
+        positive_image = positive_value[2]
         for k in data_dict:
             if k != anchor_dic_key:
                 for value in data_dict[k]:
                     loss = triplet_loss(
                         anchor, positive, value[data_type], data_type)
                     if loss != 0:
-                        anchor_set.append(anchor)
-                        positive_set.append(positive)
-                        negative_set.append(value[data_type])
+                        anchor_set.append(anchor_image)
+                        positive_set.append(positive_image)
+                        negative_set.append(value[2])
                         triplets -= 1
                         break
     return np.array(anchor_set), np.array(positive_set), np.array(negative_set)
 
 def build_dict():
     output_data = np.genfromtxt('outputs_for_mining.csv', delimiter=',')
-    output_data = transform_to_binary(output_data)
+    print(output_data[0])
+    binary_output_data = transform_to_binary(output_data)
+    print(output_data[0])
     training_data = data_reader.get_training_set()
     images, labels = training_data[0], training_data[1]
     data_dict = {}
     for i in range(0,len(images)):
         if int(labels[i]) in data_dict:
-            data_dict[int(labels[i])].append((images[i], output_data[i]))
+            data_dict[int(labels[i])].append((output_data[i], binary_output_data[i], images[i]))
         else:
-            data_dict[int(labels[i])] = [(images[i], output_data[i])]
+            data_dict[int(labels[i])] = [
+                (output_data[i], binary_output_data[i], images[i])]
     return data_dict
 
-print(get_hard_triplets(10,0))
+get_hard_triplets(10,0)
+#build_dict()
+
 # t = output_data[0]
 
 # min_dist = 61

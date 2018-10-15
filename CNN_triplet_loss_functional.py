@@ -10,14 +10,12 @@ import numpy as np
 
 def triplet_loss(x,y):
     anchor, positive, negative = tf.split(y, 3, axis = 1)
-    #print("Anchor in loss")
-    #print(K.eval(anchor))
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
 
     basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), 0.05)
     loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
-
+    print(loss)
     return loss
 
 def build_model(img_x, img_y):
@@ -73,7 +71,7 @@ num_epochs = 10
 img_x, img_y = 128, 254
 #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
 #Cada posicion es una imagen RGB de 128(ancho)x254(alto)
-x_anchor, x_positive, x_negative = triplets_mining.get_random_triplets()
+x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(10,0)
 l = len(x_anchor)
 x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
 x_anchor = x_anchor.astype('float32')
@@ -93,23 +91,23 @@ print(model.summary())
 
 history = AccuracyHistory()
 cbk = CollectWeightCallback(layer_index=-1)
-# model.fit(x=[x_anchor, x_positive, x_negative],y = np.zeros(l),
-#             batch_size=64,
-#             epochs=10,
-#             verbose=1,
-#             callbacks=[history, cbk])
-
-inp = model.input
-for epoch in range(num_epochs):
-    print('Epoch %s' % epoch)
-
-    model.fit([x_anchor, x_positive, x_negative],
-            y=np.zeros(l),
+model.fit(x=[x_anchor, x_positive, x_negative],y = np.zeros(l),
             batch_size=64,
-            epochs=1,
+            epochs=10,
             verbose=1,
             callbacks=[history])
-    # all layer outputs
-    outputs = model.layers[-1].output
-    #functor = K.function([inp, K.learning_phase()], outputs)
-    print(outputs)
+
+inp = model.input
+# for epoch in range(num_epochs):
+#     print('Epoch %s' % epoch)
+
+#     model.fit([x_anchor, x_positive, x_negative],
+#             y=np.zeros(l),
+#             batch_size=64,
+#             epochs=1,
+#             verbose=1,
+#             callbacks=[history])
+#     # all layer outputs
+#     outputs = model.layers[-1].output
+#     #functor = K.function([inp, K.learning_phase()], outputs)
+#     print(outputs)
