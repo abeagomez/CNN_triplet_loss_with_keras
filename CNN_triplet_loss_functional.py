@@ -85,19 +85,39 @@ x_negative = x_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
 x_negative = x_negative.astype('float32')
 x_negative /= 255
 
+xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(10, 0)
+lt = len(xt_anchor)
+xt_anchor = xt_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
+xt_anchor = xt_anchor.astype('float32')
+xt_anchor /= 255
+
+xt_positive = xt_positive.reshape(x_positive.shape[0], img_x, img_y, 3)
+xt_positive = xt_positive.astype('float32')
+xt_positive /= 255
+
+xt_negative = xt_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
+xt_negative = xt_negative.astype('float32')
+xt_negative /= 255
+
+x = [x_anchor, x_positive, x_negative]
+x_test = [xt_anchor, xt_positive, xt_negative]
 model = build_model(img_x, img_y)
 # Print the model structure
 print(model.summary())
 
 history = AccuracyHistory()
-cbk = CollectWeightCallback(layer_index=-1)
-model.fit(x=[x_anchor, x_positive, x_negative],y = np.zeros(l),
+model.fit(x=x,y = np.zeros(l),
             batch_size=64,
             epochs=10,
             verbose=1,
+            validation_data=(x_test, np.zeros(lt)),
             callbacks=[history])
 
-inp = model.input
+score = model.evaluate(x=x_test,y = np.zeros(lt),verbose = 0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
+
+#inp = model.input
 # for epoch in range(num_epochs):
 #     print('Epoch %s' % epoch)
 
