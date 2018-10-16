@@ -8,7 +8,7 @@ import triplets_mining
 from keras.layers import Lambda
 import numpy as np
 
-def triplet_loss(x,y):
+def triplet_loss(y):
     anchor, positive, negative = tf.split(y, 3, axis = 1)
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
@@ -43,8 +43,11 @@ def build_model(img_x, img_y):
     negative_embed = reid_model(negative)
 
     merged_output = concatenate([anchor_embed, positive_embed, negative_embed])
-    model = Model(inputs=[anchor, positive, negative], outputs=merged_output)
-    model.compile(optimizer='Adam', loss=triplet_loss, metrics=['accuracy'])
+    loss = Lambda(triplet_loss, (1,))(merged_output)
+
+    model = Model(inputs=[anchor, positive, negative], outputs=loss)
+    model.compile(optimizer='Adam', loss='mean_absolute_error',
+                  metrics=['accuracy'])
     return model
 
 
@@ -71,7 +74,7 @@ num_epochs = 10
 img_x, img_y = 128, 254
 #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
 #Cada posicion es una imagen RGB de 128(ancho)x254(alto)
-x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(3000,0)
+x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(10,0)
 l = len(x_anchor)
 x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
 x_anchor = x_anchor.astype('float32')
@@ -85,7 +88,7 @@ x_negative = x_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
 x_negative = x_negative.astype('float32')
 x_negative /= 255
 
-xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(500, 0)
+xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(10, 0)
 lt = len(xt_anchor)
 xt_anchor = xt_anchor.reshape(xt_anchor.shape[0], img_x, img_y, 3)
 xt_anchor = xt_anchor.astype('float32')
@@ -101,19 +104,19 @@ xt_negative /= 255
 
 x = [x_anchor, x_positive, x_negative]
 x_test = [xt_anchor, xt_positive, xt_negative]
-model = build_model(img_x, img_y)
+cnn_model = build_model(img_x, img_y)
 # Print the model structure
-print(model.summary())
+print(cnn_model.summary())
 
 history = AccuracyHistory()
-model.fit(x=x,y = np.zeros(l),
+cnn_model.fit(x=x,y = np.zeros(l),
             batch_size=64,
-            epochs=10,
+            epochs=2,
             verbose=1,
             validation_data=(x_test, np.zeros(lt)),
             callbacks=[history])
 
-score = model.evaluate(x=x_test,y = np.zeros(lt),verbose = 0)
+score = cnn_model.evaluate(x=x_test,y = np.zeros(lt),verbose = 0)
 print('Test loss:', score[0])
 print('Test accuracy:', score[1])
 
