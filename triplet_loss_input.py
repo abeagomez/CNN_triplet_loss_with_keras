@@ -59,7 +59,7 @@ r = model.predict(x_train,
 
 #Save output to CSV
 #np.savetxt("outputs_for_mining.csv", r , delimiter=",")
-np.savetxt("outputs_for_validation.csv", r, delimiter=",")
+#np.savetxt("outputs_for_validation.csv", r, delimiter=",")
 
 
 

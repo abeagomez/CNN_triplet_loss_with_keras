@@ -123,11 +123,11 @@ print('Test loss:', score[0])
 #print('Test accuracy:', score[1])
 
 # serialize model to JSON
-model_json = model.to_json()
+model_json = cnn_model.to_json()
 with open("model.json", "w") as json_file:
     json_file.write(model_json)
 # serialize weights to HDF5
-model.save_weights("model.h5")
+cnn_model.save_weights("model.h5")
 print("Saved model to disk")
 
 # for epoch in range(num_epochs):
