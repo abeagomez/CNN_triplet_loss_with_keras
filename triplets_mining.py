@@ -29,6 +29,46 @@ def get_random_triplets():
         negative.append(images[rd.randint(0, len(images)-1)])
     return np.array(anchor), np.array(positive), np.array(negative)
 
+def get_valid_validation_triplets(triplets, data_type):
+    anchor_set = []
+    positive_set = []
+    negative_set = []
+    data_dict = build_validation_dict()
+    while triplets > 0:
+        anchor_dic_key = rd.randint(0, len(data_dict)-1)
+        anchor_value_len = len(data_dict[anchor_dic_key])
+        anchor_value = data_dict[anchor_dic_key][rd.randint(
+            0, anchor_value_len - 1)]
+        anchor = anchor_value[data_type]
+        anchor_image = anchor_value[2]
+        positive_value = data_dict[anchor_dic_key][rd.randint(
+            0, anchor_value_len - 1)]
+        positive = positive_value[data_type]
+        positive_image = positive_value[2]
+        for k in data_dict:
+            if k != anchor_dic_key:
+                negative_len = len(data_dict[k])
+                negative_value = data_dict[k][rd.randint(
+                    0, negative_len - 1)]
+                negative_image = negative_value[2]
+                anchor_set.append(anchor_image)
+                positive_set.append(positive_image)
+                negative_set.append(negative_image)
+                triplets -= 1
+                break
+    return np.array(anchor_set), np.array(positive_set), np.array(negative_set)
+
+
+def get_hard_value(k, anchor_dic_key, data_dict, anchor, positive, data_type):
+    if k != anchor_dic_key:
+        for value in data_dict[k]:
+            loss = triplet_loss(
+                anchor, positive, value[data_type], data_type)
+            if loss != 0:
+                return loss, value
+    return 0, 0
+
+
 #Triplets: the number of triplets we want to build
 #data_type: 0 if original output, 1 if binary output
 def get_hard_triplets(triplets, data_type):
@@ -48,16 +88,14 @@ def get_hard_triplets(triplets, data_type):
         positive = positive_value[data_type]
         positive_image = positive_value[2]
         for k in data_dict:
-            if k != anchor_dic_key:
-                for value in data_dict[k]:
-                    loss = triplet_loss(
-                        anchor, positive, value[data_type], data_type)
-                    if loss != 0:
-                        anchor_set.append(anchor_image)
-                        positive_set.append(positive_image)
-                        negative_set.append(value[2])
-                        triplets -= 1
-                        break
+            loss = get_hard_value(k, anchor_dic_key, data_dict,
+                            anchor, positive, data_type)
+            if loss[0] != 0:
+                anchor_set.append(anchor_image)
+                positive_set.append(positive_image)
+                negative_set.append(loss[1][2])
+                triplets -= 1
+                break
     return np.array(anchor_set), np.array(positive_set), np.array(negative_set)
 
 def build_dict():
@@ -74,6 +112,23 @@ def build_dict():
                 (output_data[i], binary_output_data[i], images[i])]
     return data_dict
 
+def build_validation_dict():
+    output_data = np.genfromtxt('outputs_for_validation.csv', delimiter=',')
+    binary_output_data = transform_to_binary(output_data)
+    validation_data = data_reader.get_validation_set()
+    images, labels = validation_data[0], validation_data[1]
+    data_dict = {}
+    for i in range(0, len(images)):
+        if int(labels[i]) in data_dict:
+            data_dict[int(labels[i])].append(
+                (output_data[i], binary_output_data[i], images[i]))
+        else:
+            data_dict[int(labels[i])] = [
+                (output_data[i], binary_output_data[i], images[i])]
+    return data_dict
+
+#print(len(get_valid_validation_triplets(10,0)[0]))
+#print(len(get_hard_triplets(300, 0)[0]))
 #get_hard_triplets(10,0)
 #build_dict()
 
