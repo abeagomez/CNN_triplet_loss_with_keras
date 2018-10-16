@@ -14,7 +14,8 @@ import keras.backend as K
 import matplotlib.pylab as plt
 
 
-x_train, x_labels = data_reader.get_training_set()
+#x_train, x_labels = data_reader.get_training_set()
+x_train, x_labels = data_reader.get_validation_set()
 
 batch_size = 100
 epochs = 10
@@ -57,7 +58,8 @@ r = model.predict(x_train,
 #print(r[0])
 
 #Save output to CSV
-np.savetxt("outputs_for_mining.csv", r , delimiter=",")
+#np.savetxt("outputs_for_mining.csv", r , delimiter=",")
+np.savetxt("outputs_for_validation.csv", r, delimiter=",")
 
 
 
