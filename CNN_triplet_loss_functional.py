@@ -87,15 +87,15 @@ x_negative /= 255
 
 xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(10, 0)
 lt = len(xt_anchor)
-xt_anchor = xt_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
+xt_anchor = xt_anchor.reshape(xt_anchor.shape[0], img_x, img_y, 3)
 xt_anchor = xt_anchor.astype('float32')
 xt_anchor /= 255
 
-xt_positive = xt_positive.reshape(x_positive.shape[0], img_x, img_y, 3)
+xt_positive = xt_positive.reshape(xt_positive.shape[0], img_x, img_y, 3)
 xt_positive = xt_positive.astype('float32')
 xt_positive /= 255
 
-xt_negative = xt_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
+xt_negative = xt_negative.reshape(xt_negative.shape[0], img_x, img_y, 3)
 xt_negative = xt_negative.astype('float32')
 xt_negative /= 255
 

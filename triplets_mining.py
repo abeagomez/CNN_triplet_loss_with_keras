@@ -30,6 +30,7 @@ def get_random_triplets():
     return np.array(anchor), np.array(positive), np.array(negative)
 
 def get_valid_validation_triplets(triplets, data_type):
+    print("======= Generating Validation Triplets =======")
     anchor_set = []
     positive_set = []
     negative_set = []
@@ -56,6 +57,8 @@ def get_valid_validation_triplets(triplets, data_type):
                 negative_set.append(negative_image)
                 triplets -= 1
                 break
+    print("======= Validation Triplets Generation Finished =======")
+    print("======= {} triplets generated =======".format(len(anchor_set)))
     return np.array(anchor_set), np.array(positive_set), np.array(negative_set)
 
 
@@ -72,6 +75,7 @@ def get_hard_value(k, anchor_dic_key, data_dict, anchor, positive, data_type):
 #Triplets: the number of triplets we want to build
 #data_type: 0 if original output, 1 if binary output
 def get_hard_triplets(triplets, data_type):
+    print("======= Generating Training Triplets =======")
     anchor_set = []
     positive_set = []
     negative_set = []
@@ -96,6 +100,8 @@ def get_hard_triplets(triplets, data_type):
                 negative_set.append(loss[1][2])
                 triplets -= 1
                 break
+    print("======= Training Triplets Generation Finished =======")
+    print("======= {} triplets generated =======".format(len(anchor_set)))
     return np.array(anchor_set), np.array(positive_set), np.array(negative_set)
 
 def build_dict():
