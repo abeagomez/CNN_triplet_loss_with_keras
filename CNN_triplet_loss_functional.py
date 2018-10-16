@@ -8,6 +8,7 @@ from keras.models import Sequential
 import triplets_mining
 from keras.layers import Lambda
 import numpy as np
+import os
 
 def triplet_loss(y):
     anchor, positive, negative = tf.split(y, 3, axis = 1)
@@ -121,7 +122,14 @@ score = cnn_model.evaluate(x=x_test,y = np.zeros(lt),verbose = 0)
 print('Test loss:', score[0])
 #print('Test accuracy:', score[1])
 
-#inp = model.input
+# serialize model to JSON
+model_json = model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+model.save_weights("model.h5")
+print("Saved model to disk")
+
 # for epoch in range(num_epochs):
 #     print('Epoch %s' % epoch)
 
