@@ -1,6 +1,15 @@
 from keras.models import model_from_json
 import data_reader
-import numpy
+import keras
+from keras import metrics
+import keras.backend as K
+import tensorflow as tf
+from keras import Input, Model
+from keras.layers import Conv2D, Flatten, Dense, MaxPooling2D, merge, concatenate
+from keras.models import Sequential
+import triplets_mining
+from keras.layers import Lambda
+import numpy as np
 import os
 
 x_train, x_labels = data_reader.get_validation_set()
