@@ -17,7 +17,6 @@ def triplet_loss(y):
 
     basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), 0.05)
     loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
-    print(loss)
     return loss
 
 def build_model(img_x, img_y):
@@ -76,7 +75,7 @@ num_epochs = 10
 img_x, img_y = 128, 254
 #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
 #Cada posicion es una imagen RGB de 128(ancho)x254(alto)
-x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(7000,0)
+x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(10,0)
 l = len(x_anchor)
 x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
 x_anchor = x_anchor.astype('float32')
@@ -90,7 +89,7 @@ x_negative = x_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
 x_negative = x_negative.astype('float32')
 x_negative /= 255
 
-xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(500, 0)
+xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(5, 0)
 lt = len(xt_anchor)
 xt_anchor = xt_anchor.reshape(xt_anchor.shape[0], img_x, img_y, 3)
 xt_anchor = xt_anchor.astype('float32')
@@ -123,12 +122,13 @@ print('Test loss:', score[0])
 #print('Test accuracy:', score[1])
 
 # serialize model to JSON
-model_json = cnn_model.to_json()
-with open("model.json", "w") as json_file:
-    json_file.write(model_json)
+#model_json = cnn_model.to_json()
+#with open("model.json", "w") as json_file:
+#    json_file.write(model_json)
+
 # serialize weights to HDF5
-cnn_model.save_weights("model.h5")
-print("Saved model to disk")
+#cnn_model.save_weights("model.h5")
+#print("Saved model to disk")
 
 # for epoch in range(num_epochs):
 #     print('Epoch %s' % epoch)
