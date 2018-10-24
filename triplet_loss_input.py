@@ -41,10 +41,10 @@ model.add(MaxPooling2D(pool_size=(1, 1), strides=(1, 1)))
 model.add(Flatten())
 model.add(Dense(4024, activation='relu'))
 model.add(Dense(512, activation='sigmoid'))
-# model.add(Dense(512,
-#                 activation= Lambda(lambda z: K.round(
-#     keras.layers.activations.sigmoid(x=z))),
-#                 kernel_initializer="lecun_normal"))
+#  model.add(Dense(512,
+#                  activation= Lambda(lambda z: K.round(
+#      keras.layers.activations.sigmoid(x=z))),
+#                  kernel_initializer="lecun_normal"))
 
 #Testing fragment
 # while(epochs > 6):

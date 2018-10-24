@@ -10,43 +10,53 @@ from keras.layers import Lambda
 import numpy as np
 import os
 
-def triplet_loss(y):
-    anchor, positive, negative = tf.split(y, 3, axis = 1)
-    pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
-    neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
 
-    basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), -0.05)
+def structured_triplet_loss(y):
+    anchor, positive, anchor_neg, positive_neg = tf.split(y, 4, axis=1)
+    pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
+    neg_dist_anch = tf.reduce_sum(tf.square(tf.subtract(anchor, anchor_neg)), 1)
+    neg_dist_pos = tf.reduce_sum(tf.square(tf.subtract(anchor, positive_neg)), 1)
+
+    term_anchor = tf.maximum(0.0, tf.subtract(1.0, neg_dist_anch))
+    term_positive = tf.maximum(0.0, tf.subtract(1.0, neg_dist_pos))
+    inner_max = tf.maximum(term_anchor, term_positive)
+    basic_loss = tf.maximum(tf.add(inner_max, pos_dist), 0.0)
     loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
     return loss
+
 
 def build_model(img_x, img_y):
     input_shape = Input(shape=(img_x, img_y, 3))
 
-    conv_0 = Conv2D(32, kernel_size=(3, 3), strides=(1, 1), activation='relu') (input_shape)
-    max_p0 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2)) (conv_0)
-    conv_1 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (max_p0)
+    conv_0 = Conv2D(32, kernel_size=(3, 3), strides=(
+        1, 1), activation='relu')(input_shape)
+    max_p0 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(conv_0)
+    conv_1 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu')(max_p0)
     max_p1 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(conv_1)
-    conv_2 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (max_p1)
-    conv_3 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (conv_2)
-    max_p2 = MaxPooling2D(pool_size=(1, 1), strides=(1, 1)) (conv_3)
-    flatten = Flatten() (max_p2)
+    conv_2 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu')(max_p1)
+    conv_3 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu')(conv_2)
+    max_p2 = MaxPooling2D(pool_size=(1, 1), strides=(1, 1))(conv_3)
+    flatten = Flatten()(max_p2)
     dense1 = Dense(4024, activation='relu')(flatten)
     dense2 = Dense(512, activation='sigmoid')(dense1)
 
     anchor = Input(shape=(128, 254, 3))
     positive = Input(shape=(128, 254, 3))
-    negative = Input(shape=(128, 254, 3))
+    a_negative = Input(shape=(128, 254, 3))
+    p_negative = Input(shape=(128, 254, 3))
 
     reid_model = Model(inputs=[input_shape], outputs=[dense2])
 
     anchor_embed = reid_model(anchor)
     positive_embed = reid_model(positive)
-    negative_embed = reid_model(negative)
+    a_negative_embed = reid_model(a_negative)
+    p_negative_embed = reid_model(p_negative)
 
-    merged_output = concatenate([anchor_embed, positive_embed, negative_embed])
-    loss = Lambda(triplet_loss, (1,))(merged_output)
+    merged_output = concatenate(
+        [anchor_embed, positive_embed, a_negative_embed, p_negative_embed])
+    loss = Lambda(structured_triplet_loss, (1,))(merged_output)
 
-    model = Model(inputs=[anchor, positive, negative], outputs=loss)
+    model = Model(inputs=[anchor, positive, a_negative, p_negative], outputs=loss)
     model.compile(optimizer='Adam', loss='mse',
                   metrics=["mae"])
     return model
@@ -75,7 +85,8 @@ num_epochs = 10
 img_x, img_y = 128, 254
 #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
 #Cada posicion es una imagen RGB de 128(ancho)x254(alto)
-x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(10,0)
+x_anchor, x_positive, x_anchor_neg, x_pos_neg = triplets_mining.get_structured_hard_triplets(
+    10, 0)
 l = len(x_anchor)
 x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
 x_anchor = x_anchor.astype('float32')
@@ -85,11 +96,16 @@ x_positive = x_positive.reshape(x_positive.shape[0], img_x, img_y, 3)
 x_positive = x_positive.astype('float32')
 x_positive /= 255
 
-x_negative = x_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
-x_negative = x_negative.astype('float32')
-x_negative /= 255
+x_a_negative = x_anchor_neg.reshape(x_anchor_neg.shape[0], img_x, img_y, 3)
+x_a_negative = x_a_negative.astype('float32')
+x_a_negative /= 255
 
-xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(5, 0)
+x_p_negative = x_pos_neg.reshape(x_pos_neg.shape[0], img_x, img_y, 3)
+x_p_negative = x_p_negative.astype('float32')
+x_p_negative /= 255
+
+xt_anchor,xt_positive,xt_a_negative,xt_p_negative = triplets_mining.get_structured_validation_triplets(
+    5, 0)
 lt = len(xt_anchor)
 xt_anchor = xt_anchor.reshape(xt_anchor.shape[0], img_x, img_y, 3)
 xt_anchor = xt_anchor.astype('float32')
@@ -99,26 +115,30 @@ xt_positive = xt_positive.reshape(xt_positive.shape[0], img_x, img_y, 3)
 xt_positive = xt_positive.astype('float32')
 xt_positive /= 255
 
-xt_negative = xt_negative.reshape(xt_negative.shape[0], img_x, img_y, 3)
-xt_negative = xt_negative.astype('float32')
-xt_negative /= 255
+xt_a_negative = xt_a_negative.reshape(xt_a_negative.shape[0], img_x, img_y, 3)
+xt_a_negative = xt_a_negative.astype('float32')
+xt_a_negative /= 255
 
-x = [x_anchor, x_positive, x_negative]
-x_test = [xt_anchor, xt_positive, xt_negative]
+xt_p_negative = xt_p_negative.reshape(xt_p_negative.shape[0], img_x, img_y, 3)
+xt_p_negative = xt_p_negative.astype('float32')
+xt_p_negative /= 255
+
+x = [x_anchor, x_positive, x_a_negative, x_p_negative]
+x_test = [xt_anchor, xt_positive, xt_a_negative, xt_p_negative]
 cnn_model = build_model(img_x, img_y)
 # Print the model structure
 print(cnn_model.summary())
 
 history = AccuracyHistory()
-cnn_model.fit(x=x,y = np.zeros(l),
-            batch_size=64,
-            epochs=10,
-            verbose=1,
-            validation_data=(x_test, np.zeros(lt)),
-            callbacks=[history])
+cnn_model.fit(x=x, y=np.zeros(l),
+              batch_size=64,
+              epochs=2,
+              verbose=1,
+              validation_data=(x_test, np.zeros(lt)),
+              callbacks=[history])
 
-score = cnn_model.evaluate(x=x_test,y = np.zeros(lt),verbose = 0)
-print('Test loss:', score[0])
+#score = cnn_model.evaluate(x=x_test, y=np.zeros(lt), verbose=0)
+#print('Test loss:', score[0])
 #print('Test accuracy:', score[1])
 
 # serialize model to JSON
