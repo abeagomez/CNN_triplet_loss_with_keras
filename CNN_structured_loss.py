@@ -40,10 +40,10 @@ def build_model(img_x, img_y):
     dense1 = Dense(4024, activation='relu')(flatten)
     dense2 = Dense(512, activation='sigmoid')(dense1)
 
-    anchor = Input(shape=(128, 254, 3))
-    positive = Input(shape=(128, 254, 3))
-    a_negative = Input(shape=(128, 254, 3))
-    p_negative = Input(shape=(128, 254, 3))
+    anchor = Input(shape=(60, 160, 3))
+    positive = Input(shape=(60, 160, 3))
+    a_negative = Input(shape=(60, 160, 3))
+    p_negative = Input(shape=(60, 160, 3))
 
     reid_model = Model(inputs=[input_shape], outputs=[dense2])
 
@@ -84,7 +84,7 @@ class CollectWeightCallback(keras.callbacks.Callback):
 num_epochs = 10
 img_x, img_y = 60, 160
 #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
-#Cada posicion es una imagen RGB de 128(ancho)x254(alto)
+#Cada posicion es una imagen RGB de 60(ancho)x160(alto)
 x_anchor, x_positive, x_anchor_neg, x_pos_neg = triplets_mining.get_structured_hard_triplets(
     10, 0)
 l = len(x_anchor)
