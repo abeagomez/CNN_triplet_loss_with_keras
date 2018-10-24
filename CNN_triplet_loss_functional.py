@@ -76,7 +76,7 @@ num_epochs = 10
 img_x, img_y = 60, 160
 #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
 #Cada posicion es una imagen RGB de 128(ancho)x254(alto)
-x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(10,0)
+x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(5000,0)
 l = len(x_anchor)
 x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
 x_anchor = x_anchor.astype('float32')
@@ -90,7 +90,7 @@ x_negative = x_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
 x_negative = x_negative.astype('float32')
 x_negative /= 255
 
-xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(5, 0)
+xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(500, 0)
 lt = len(xt_anchor)
 xt_anchor = xt_anchor.reshape(xt_anchor.shape[0], img_x, img_y, 3)
 xt_anchor = xt_anchor.astype('float32')
