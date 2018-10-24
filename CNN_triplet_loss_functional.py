@@ -15,7 +15,7 @@ def triplet_loss(y):
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
 
-    basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), -0.05)
+    basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), 0.05)
     loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
     return loss
 
@@ -27,8 +27,9 @@ def build_model(img_x, img_y):
     conv_1 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (max_p0)
     max_p1 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))(conv_1)
     conv_2 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (max_p1)
-    conv_3 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (conv_2)
-    max_p2 = MaxPooling2D(pool_size=(1, 1), strides=(1, 1)) (conv_3)
+    max_p2 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2)) (conv_2)
+    conv_3 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (max_p2)
+    max_p3 = MaxPooling2D(pool_size=(1, 1), strides=(1, 1)) (conv_3)
     flatten = Flatten() (max_p2)
     dense1 = Dense(4024, activation='relu')(flatten)
     dense2 = Dense(512, activation='sigmoid')(dense1)
@@ -72,7 +73,7 @@ class CollectWeightCallback(keras.callbacks.Callback):
 
 
 num_epochs = 10
-img_x, img_y = 128, 254
+img_x, img_y = 60, 160
 #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
 #Cada posicion es una imagen RGB de 128(ancho)x254(alto)
 x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(10,0)
@@ -117,7 +118,7 @@ cnn_model.fit(x=x,y = np.zeros(l),
             validation_data=(x_test, np.zeros(lt)),
             callbacks=[history])
 
-score = cnn_model.evaluate(x=x_test,y = np.zeros(lt),verbose = 0)
+score = cnn_model.evaluate(x = x_test, y = np.zeros(lt),verbose = 0)
 print('Test loss:', score[0])
 #print('Test accuracy:', score[1])
 

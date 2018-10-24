@@ -20,7 +20,7 @@ x_train, x_labels = data_reader.get_validation_set()
 batch_size = 100
 epochs = 10
 
-img_x, img_y = 128, 254
+img_x, img_y = 60, 160
 
 x_train = x_train.reshape(x_train.shape[0], img_x, img_y, 3)
 input_shape = (img_x, img_y, 3)
@@ -35,8 +35,8 @@ model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 model.add(Conv2D(32, (3, 3), strides=(1, 1), activation='relu'))
 model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 model.add(Conv2D(32, (3, 3), strides=(1, 1), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
 model.add(Conv2D(32, (3, 3), strides=(2, 2), activation='relu'))
-#model.add(Conv2D(32, (3, 3), strides=(1, 1), activation='relu'))
 model.add(MaxPooling2D(pool_size=(1, 1), strides=(1, 1)))
 model.add(Flatten())
 model.add(Dense(4024, activation='relu'))
@@ -58,11 +58,11 @@ model.add(Dense(512, activation='sigmoid'))
 r = model.predict(x_train,
                   batch_size=batch_size,
                   verbose=1)
-print(r[0])
+#print(r[0])
 
 #Save output to CSV
 #np.savetxt("outputs_for_mining.csv", r , delimiter=",")
-#np.savetxt("outputs_for_validation.csv", r, delimiter=",")
+np.savetxt("outputs_for_validation.csv", r, delimiter=",")
 
 
 

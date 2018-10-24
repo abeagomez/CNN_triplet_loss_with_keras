@@ -25,7 +25,7 @@ def prepare_data(path):
                 try:
                     image = np.array(f[dataset[1][i][j]]).transpose((2, 1, 0))
                     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-                    image = cv2.resize(image, (128, 254))
+                    image = cv2.resize(image, (60, 160))
                     image = cv2.imencode('.jpg', image)[1].tostring()
                     if len(dataset[1][0]) - j <= 100:
                         filepath = '%s/%s/val/%04d_%02d.jpg' % (path, dataset[0], j - prev_id - 1, i)
