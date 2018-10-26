@@ -12,6 +12,7 @@ import os
 
 def triplet_loss(y):
     anchor, positive, negative = tf.split(y, 3, axis = 1)
+    #anchor, positive, negative = tf.round(anchor), tf.round(positive), tf.round(negative)
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
 
@@ -30,15 +31,21 @@ def build_model(img_x, img_y):
     max_p2 = MaxPooling2D(pool_size=(2, 2), strides=(2, 2)) (conv_2)
     conv_3 = Conv2D(32, (3, 3), strides=(1, 1), activation='relu') (max_p2)
     max_p3 = MaxPooling2D(pool_size=(1, 1), strides=(1, 1)) (conv_3)
-    flatten = Flatten() (max_p2)
+    flatten = Flatten() (max_p3)
     dense1 = Dense(4024, activation='relu')(flatten)
-    dense2 = Dense(512, activation='sigmoid')(dense1)
+    dense2 = Dense(512, activation='relu')(dense1)
+    merged_fc = concatenate([dense1, dense2])
+    #hash_fc = Dense(50,
+    #                activation=Lambda(lambda z: K.round(
+    #                    keras.layers.activations.sigmoid(x=z))),
+    #                kernel_initializer="lecun_normal")(merged_fc)
+    hash_fc = Dense(50, activation="sigmoid")(merged_fc)
 
     anchor = Input(shape=(60, 160, 3))
     positive = Input(shape=(60, 160, 3))
     negative = Input(shape=(60, 160, 3))
 
-    reid_model = Model(inputs=[input_shape], outputs=[dense2])
+    reid_model = Model(inputs=[input_shape], outputs=[hash_fc])
 
     anchor_embed = reid_model(anchor)
     positive_embed = reid_model(positive)
@@ -71,41 +78,45 @@ class CollectWeightCallback(keras.callbacks.Callback):
         layer = self.model.layers[self.layer_index]
         self.weights.append(layer.get_weights())
 
+def training_set(img_x, img_y, no_triplets, data_type):
+    #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
+    #Cada posicion es una imagen RGB de 60(ancho)x160(alto)
+    x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(no_triplets,data_type)
+    l = len(x_anchor)
+    x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
+    x_anchor = x_anchor.astype('float32')
+    x_anchor /= 255
+
+    x_positive = x_positive.reshape(x_positive.shape[0], img_x, img_y, 3)
+    x_positive = x_positive.astype('float32')
+    x_positive /= 255
+
+    x_negative = x_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
+    x_negative = x_negative.astype('float32')
+    x_negative /= 255
+    return l, [x_anchor, x_positive,x_negative]
+
+def validation_set(img_x, img_y, no_triplets, data_type):
+    xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(no_triplets, data_type)
+    lt = len(xt_anchor)
+    xt_anchor = xt_anchor.reshape(xt_anchor.shape[0], img_x, img_y, 3)
+    xt_anchor = xt_anchor.astype('float32')
+    xt_anchor /= 255
+
+    xt_positive = xt_positive.reshape(xt_positive.shape[0], img_x, img_y, 3)
+    xt_positive = xt_positive.astype('float32')
+    xt_positive /= 255
+
+    xt_negative = xt_negative.reshape(xt_negative.shape[0], img_x, img_y, 3)
+    xt_negative = xt_negative.astype('float32')
+    xt_negative /= 255
+    return lt, [xt_anchor, xt_positive, xt_negative]
 
 num_epochs = 10
 img_x, img_y = 60, 160
-#Esto de abajo son 3 arrays de numpy que representan imagenes RGB
-#Cada posicion es una imagen RGB de 60(ancho)x160(alto)
-x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(5000,0)
-l = len(x_anchor)
-x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
-x_anchor = x_anchor.astype('float32')
-x_anchor /= 255
 
-x_positive = x_positive.reshape(x_positive.shape[0], img_x, img_y, 3)
-x_positive = x_positive.astype('float32')
-x_positive /= 255
-
-x_negative = x_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
-x_negative = x_negative.astype('float32')
-x_negative /= 255
-
-xt_anchor, xt_positive, xt_negative = triplets_mining.get_valid_validation_triplets(500, 0)
-lt = len(xt_anchor)
-xt_anchor = xt_anchor.reshape(xt_anchor.shape[0], img_x, img_y, 3)
-xt_anchor = xt_anchor.astype('float32')
-xt_anchor /= 255
-
-xt_positive = xt_positive.reshape(xt_positive.shape[0], img_x, img_y, 3)
-xt_positive = xt_positive.astype('float32')
-xt_positive /= 255
-
-xt_negative = xt_negative.reshape(xt_negative.shape[0], img_x, img_y, 3)
-xt_negative = xt_negative.astype('float32')
-xt_negative /= 255
-
-x = [x_anchor, x_positive, x_negative]
-x_test = [xt_anchor, xt_positive, xt_negative]
+l, x = training_set(img_x, img_y, 7000, 0)
+lt, x_test = validation_set(img_x, img_y, 900, 0)
 cnn_model = build_model(img_x, img_y)
 # Print the model structure
 print(cnn_model.summary())
