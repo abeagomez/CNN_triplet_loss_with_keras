@@ -43,11 +43,16 @@ def build_model(img_x, img_y):
     dense2 = Dense(512, activation='sigmoid')(dense1)
     merged_fc = concatenate([dense1, dense2])
     #binary output
-    #hash_fc = Dense(50,
-    #            activation=Lambda(lambda z: K.round(
-    #                keras.layers.activations.sigmoid(x=z))),
-    #            kernel_initializer="lecun_normal")(merged_fc)
-    hash_fc = Dense(50, activation = "sigmoid")(merged_fc)
+    hash_fc = Dense(50,
+                    activation=Lambda(lambda z: tf.divide(
+                        tf.add(
+                            K.sign(
+                                tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)),
+                            K.abs(
+                                K.sign(
+                                    tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)))),
+                        2)), kernel_initializer="lecun_normal")(merged_fc)
+    #hash_fc = Dense(50, activation = "sigmoid")(merged_fc)
 
     anchor = Input(shape=(60, 160, 3))
     positive = Input(shape=(60, 160, 3))
@@ -145,7 +150,7 @@ print(cnn_model.summary())
 history = AccuracyHistory()
 cnn_model.fit(x=x, y=np.zeros(l),
               batch_size=64,
-              epochs=2,
+              epochs=10,
               verbose=1,
               validation_data=(x_test, np.zeros(lt)),
               callbacks=[history])

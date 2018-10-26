@@ -12,6 +12,7 @@ from keras.models import Sequential
 from keras import Input, Model
 import keras.backend as K
 import matplotlib.pylab as plt
+import tensorflow as tf
 
 
 x_train, x_labels = data_reader.get_training_set()
@@ -62,13 +63,22 @@ dense1 = Dense(4024, activation='relu')(flatten)
 dense2 = Dense(512, activation='relu')(dense1)
 merged_fc = concatenate([dense1, dense2])
 #binary output
+hash_fc = Dense(50,
+                activation=Lambda(lambda z: tf.divide(
+                    tf.add(
+                        K.sign(
+                            tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)),
+                        K.abs(
+                            K.sign(
+                                tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)))),
+                    2)), kernel_initializer="lecun_normal")(merged_fc)
 #hash_fc = Dense(50,
 #            activation=Lambda(lambda z: K.round(keras.layers.activations.sigmoid(x=z))),
 #            kernel_initializer="lecun_normal")(merged_fc)
 #Sigmoid output
-hash_fc = Dense(50,
-            activation="sigmoid",
-            kernel_initializer="lecun_normal")(merged_fc)
+#hash_fc = Dense(50,
+#            activation="sigmoid",
+#            kernel_initializer="lecun_normal")(merged_fc)
 model = Model(inputs=[input_shape], outputs=[hash_fc])
 
 

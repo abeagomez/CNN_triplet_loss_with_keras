@@ -35,11 +35,16 @@ def build_model(img_x, img_y):
     dense1 = Dense(4024, activation='relu')(flatten)
     dense2 = Dense(512, activation='relu')(dense1)
     merged_fc = concatenate([dense1, dense2])
-    #hash_fc = Dense(50,
-    #                activation=Lambda(lambda z: K.round(
-    #                    keras.layers.activations.sigmoid(x=z))),
-    #                kernel_initializer="lecun_normal")(merged_fc)
-    hash_fc = Dense(50, activation="sigmoid")(merged_fc)
+    hash_fc = Dense(50,
+                    activation=Lambda(lambda z: tf.divide(
+                        tf.add(
+                            K.sign(
+                                tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)),
+                            K.abs(
+                                K.sign(
+                                    tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)))),
+                        2)), kernel_initializer="lecun_normal")(merged_fc)
+    #hash_fc = Dense(50, activation="sigmoid")(merged_fc)
 
     anchor = Input(shape=(60, 160, 3))
     positive = Input(shape=(60, 160, 3))
