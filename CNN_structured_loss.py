@@ -176,4 +176,4 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
     #     #functor = K.function([inp, K.learning_phase()], outputs)
     #     print(outputs)
 
-run_model(training_size = 7000)
+run_model()

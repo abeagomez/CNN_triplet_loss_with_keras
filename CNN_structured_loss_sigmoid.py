@@ -11,7 +11,7 @@ import numpy as np
 import os
 
 
-def structured_triplet_loss(y):
+def structured_triplet_loss(x, y):
     anchor, positive, anchor_neg, positive_neg = tf.split(y, 4, axis=1)
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist_anch = tf.reduce_sum(
@@ -58,12 +58,20 @@ def build_model(img_x, img_y):
 
     merged_output = concatenate(
         [anchor_embed, positive_embed, a_negative_embed, p_negative_embed])
-    loss = Lambda(structured_triplet_loss, (1,))(merged_output)
+    ####  Online code solution ##################################################
+    # loss = Lambda(structured_triplet_loss, (1,))(merged_output)
+
+    # model = Model(inputs=[anchor, positive, a_negative,
+    #                       p_negative], outputs=loss)
+    # model.compile(optimizer='Adam', loss='mse',
+    #               metrics=["mae"])
+
+    ### StackOverflow solution ##################################################
 
     model = Model(inputs=[anchor, positive, a_negative,
-                          p_negative], outputs=loss)
-    model.compile(optimizer='Adam', loss='mse',
-                  metrics=["mae"])
+                          p_negative], outputs=[merged_output])
+    model.compile(optimizer='Adam', loss=structured_triplet_loss,
+                  metrics=[structured_triplet_loss])
     return model
 
 

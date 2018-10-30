@@ -11,9 +11,10 @@ import numpy as np
 import os
 
 
-def triplet_loss(y):
+def triplet_loss(x,y):
+    #anchor, positive, negative = tf.split(y, 3, axis=1)
     anchor, positive, negative = tf.split(y, 3, axis=1)
-    #anchor, positive, negative = tf.round(anchor), tf.round(positive), tf.round(negative)
+
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
 
@@ -58,12 +59,20 @@ def build_model(img_x, img_y):
     positive_embed = reid_model(positive)
     negative_embed = reid_model(negative)
 
-    merged_output = concatenate([anchor_embed, positive_embed, negative_embed])
-    loss = Lambda(triplet_loss, (1,))(merged_output)
+    ####  Online code solution ##################################################
+    # merged_output = concatenate([anchor_embed, positive_embed, negative_embed])
+    # loss = Lambda(triplet_loss, (1,))(merged_output)
 
-    model = Model(inputs=[anchor, positive, negative], outputs=loss)
-    model.compile(optimizer='Adam', loss='mse',
-                  metrics=["mae"])
+    # model = Model(inputs=[anchor, positive, negative], outputs=loss)
+    # model.compile(optimizer='Adam', loss='mse',
+    #               metrics=["mae"])
+
+    ### StackOverflow solution ##################################################
+    merged_output = concatenate([anchor_embed, positive_embed, negative_embed])
+
+    model = Model(inputs=[anchor, positive, negative], outputs=[merged_output])
+    model.compile(optimizer='Adam', loss=triplet_loss,
+                  metrics=[triplet_loss])
     return model
 
 
@@ -146,7 +155,7 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
 
     #Save wights and bias as numpy arrays
     np.save("np_output_weights_tripletloss_binary",
-            cnn_model.layers[4].get_weights())
+            cnn_model.layers[3].get_weights())
 
     # for epoch in range(num_epochs):
     #     print('Epoch %s' % epoch)

@@ -130,7 +130,7 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
 
     #Save wights and bias as numpy arrays
     np.save("np_output_weights_tripletloss",
-            cnn_model.layers[4].get_weights())
+            cnn_model.layers[3].get_weights())
 
     # for epoch in range(num_epochs):
     #     print('Epoch %s' % epoch)
@@ -147,4 +147,4 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
     #     print(outputs)
 
 
-run_model(training_size=7000)
+run_model(training_size=10)
