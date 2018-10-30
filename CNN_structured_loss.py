@@ -155,7 +155,7 @@ cnn_model.fit(x=x, y=np.zeros(l),
               validation_data=(x_test, np.zeros(lt)),
               callbacks=[history])
 
-score = cnn_model.evaluate(x=x_test, y=np.zeros(lt), verbose=0)
+score = cnn_model.evaluate(x=x_test, y = np.zeros(lt), verbose=0)
 print('Test loss:', score[0])
 #print('Test accuracy:', score[1])
 
