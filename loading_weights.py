@@ -68,7 +68,7 @@ model = build_model(img_x, img_y)
 #         print(len(model.layers[i].get_weights()[1]))
 #         print("")
 
-weights = np.load("np_output_weights.npy")
+weights = np.load("np_output_weights_strloss_sigmoid.npy")
 model.layers[1].set_weights([weights[0], weights[1]])
 model.layers[1].trainable = False
 model.layers[3].set_weights([weights[2], weights[3]])
@@ -87,4 +87,10 @@ model.layers[13].trainable = False
 r = model.predict(x_train,
                   batch_size=128,
                   verbose=1)
-print(r[0])
+print((r[0]))
+print(np.round(r[0]))
+print(r[1])
+print(np.round(r[1]))
+print(r[45])
+print(np.round(r[45]))
+
