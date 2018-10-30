@@ -52,7 +52,6 @@ def build_model(img_x, img_y):
                                 K.sign(
                                     tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)))),
                         2)), kernel_initializer="lecun_normal")(merged_fc)
-    #hash_fc = Dense(50, activation = "sigmoid")(merged_fc)
 
     anchor = Input(shape=(60, 160, 3))
     positive = Input(shape=(60, 160, 3))
@@ -138,50 +137,43 @@ def validation_set(img_x, img_y, no_triplets, data_type):
 
     return lt, [xt_anchor, xt_positive, xt_a_negative, xt_p_negative]
 
+def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=10, validation_size=5, data_type = 0):
+    l, x = training_set(img_x, img_y, training_size, data_type)
+    lt, x_test = validation_set(img_x, img_y, validation_size, data_type)
+    cnn_model = build_model(img_x, img_y)
 
-num_epochs = 10
-img_x, img_y = 60, 160
-l, x = training_set(img_x, img_y, 7000, 0)
-lt, x_test = validation_set(img_x, img_y, 900, 0)
-cnn_model = build_model(img_x, img_y)
-# Print the model structure
-print(cnn_model.summary())
+    # Print the model structure
+    print(cnn_model.summary())
 
-history = AccuracyHistory()
-cnn_model.fit(x=x, y=np.zeros(l),
-              batch_size=64,
-              epochs=10,
-              verbose=1,
-              validation_data=(x_test, np.zeros(lt)),
-              callbacks=[history])
+    history = AccuracyHistory()
+    cnn_model.fit(x=x, y=np.zeros(l),
+                batch_size=batch_size,
+                epochs=num_epochs,
+                verbose=1,
+                validation_split=0.2,
+                #validation_data=(x_test, np.zeros(lt)),
+                callbacks=[history])
 
-score = cnn_model.evaluate(x=x_test, y = np.zeros(lt), verbose=0)
-print('Test loss:', score[0])
-#print('Test accuracy:', score[1])
+    score = cnn_model.evaluate(x=x_test, y = np.zeros(lt), verbose=0)
+    print('Test loss:', score[0])
+    #print('Test accuracy:', score[1])
 
-# serialize model to JSON
-#model_json = cnn_model.to_json()
-#with open("model.json", "w") as json_file:
-#    json_file.write(model_json)
+    #Save wights and bias as numpy arrays
+    np.save("np_output_weights_strloss",
+            cnn_model.layers[4].get_weights())
 
-# serialize weights to HDF5
-#cnn_model.save_weights("model.h5")
-#print("Saved model to disk")
+    # for epoch in range(num_epochs):
+    #     print('Epoch %s' % epoch)
 
-# for epoch in range(num_epochs):
-#     print('Epoch %s' % epoch)
+    #     cnn_model.fit(x,
+    #             y=np.zeros(l),
+    #             batch_size=64,
+    #             epochs=1,
+    #             verbose=1,
+    #             callbacks=[history])
+    #     # all layer outputs
+    #     outputs = model.layers[-1].output
+    #     #functor = K.function([inp, K.learning_phase()], outputs)
+    #     print(outputs)
 
-#     cnn_model.fit(x,
-#             y=np.zeros(l),
-#             batch_size=64,
-#             epochs=1,
-#             verbose=1,
-#             callbacks=[history])
-#     # all layer outputs
-#     outputs = model.layers[-1].output
-#     #functor = K.function([inp, K.learning_phase()], outputs)
-#     print(outputs)
-    # r = cnn_model.predict(x,
-    #                   batch_size=64,
-    #                   verbose=1)
-    # print(r)
+run_model(training_size = 7000)

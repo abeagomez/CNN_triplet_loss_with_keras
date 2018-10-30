@@ -2,4 +2,5 @@
 *.csv
 *.jpg
 *.pyc
+*.npy
 

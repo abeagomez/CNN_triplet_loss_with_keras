@@ -68,21 +68,21 @@ model = build_model(img_x, img_y)
 #         print(len(model.layers[i].get_weights()[1]))
 #         print("")
 
-# weights = np.load("np_output_weights.npy")
-# model.layers[1].set_weights([weights[0], weights[1]])
-# model.layers[1].trainable = False
-# model.layers[3].set_weights([weights[2], weights[3]])
-# model.layers[3].trainable = False
-# model.layers[5].set_weights([weights[4], weights[5]])
-# model.layers[5].trainable = False
-# model.layers[7].set_weights([weights[6], weights[7]])
-# model.layers[7].trainable = False
-# model.layers[10].set_weights([weights[8], weights[9]])
-# model.layers[10].trainable = False
-# model.layers[11].set_weights([weights[10], weights[11]])
-# model.layers[11].trainable = False
-# model.layers[13].set_weights([weights[12], weights[13]])
-# model.layers[13].trainable = False
+weights = np.load("np_output_weights.npy")
+model.layers[1].set_weights([weights[0], weights[1]])
+model.layers[1].trainable = False
+model.layers[3].set_weights([weights[2], weights[3]])
+model.layers[3].trainable = False
+model.layers[5].set_weights([weights[4], weights[5]])
+model.layers[5].trainable = False
+model.layers[7].set_weights([weights[6], weights[7]])
+model.layers[7].trainable = False
+model.layers[10].set_weights([weights[8], weights[9]])
+model.layers[10].trainable = False
+model.layers[11].set_weights([weights[10], weights[11]])
+model.layers[11].trainable = False
+model.layers[13].set_weights([weights[12], weights[13]])
+model.layers[13].trainable = False
 
 r = model.predict(x_train,
                   batch_size=128,

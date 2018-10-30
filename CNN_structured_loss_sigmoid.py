@@ -136,50 +136,38 @@ def validation_set(img_x, img_y, no_triplets, data_type):
     return lt, [xt_anchor, xt_positive, xt_a_negative, xt_p_negative]
 
 
-def run_model(num_epochs = 10, batch_size = 128, img_x = 60, img_y = 160, training_size = 10, validation_size = 5):
-    l, x = training_set(img_x, img_y, training_size, 0)
-    lt, x_test = validation_set(img_x, img_y, validation_size, 0)
+def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=10, validation_size=5, data_type = 0):
+    l, x = training_set(img_x, img_y, training_size, data_type)
+    lt, x_test = validation_set(img_x, img_y, validation_size, data_type)
     cnn_model = build_model(img_x, img_y)
     # Print the model structure
     print(cnn_model.summary())
 
     history = AccuracyHistory()
     cnn_model.fit(x=x, y=np.zeros(l),
-                  batch_size= batch_size,
-                  epochs= num_epochs,
+                  batch_size=batch_size,
+                  epochs=num_epochs,
                   verbose=1,
-                  validation_data=(x_test, np.zeros(lt)),
+                  validation_split=0.2,
+                  #validation_data=(x_test, np.zeros(lt)),
                   callbacks=[history])
 
     score = cnn_model.evaluate(x=x_test, y=np.zeros(lt), verbose=0)
     print('Test loss:', score[0])
 
     #En la pos 4 están todos los pesos
-    # weights = cnn_model.layers[4].get_weights()[0]
-    # print("El size es")
-    # print(len(weights))
-    # biases = cnn_model.layers[4].get_weights()[1]
-    # print("Los biases son")
-    # print(len(biases))
-    for i in range(0, len(cnn_model.layers[4].get_weights())):
-        print("Esta es la capa")
-        print(i)
-        print(cnn_model.layers[4].get_config()["layers"][i])
-        a = cnn_model.layers[4].get_weights()[i]
-        print("")
-        print(len(a))
-        # print("Este es el len de los pesos")
-        # print(len(a[0]))
-        # print("Estos son los pesos")
-        # print(a[0])
-        # print("Este es el len de los biases")
-        # print(len(a[1]))
-        # print("Estos son los biases")
-        # print(a[1])
-        print("")
+    # for i in range(0, len(cnn_model.layers[4].get_weights())):
+    #     print("Esta es la capa")
+    #     print(i)
+    #     print(cnn_model.layers[4].get_config()["layers"][i])
+    #     a = cnn_model.layers[4].get_weights()[i]
+    #     print("")
+    #     print(len(a))
+    #     print("")
+
     #Save wights and bias as numpy arrays
-    np.save("np_output_weights", cnn_model.layers[4].get_weights())
-    #np.save("np_output_biases", cnn_model.layers[4].get_weights()[1])
+    np.save("np_output_weights_strloss_sigmoid",
+            cnn_model.layers[4].get_weights())
 
     #print('Test accuracy:', score[1])
 
@@ -210,4 +198,4 @@ def run_model(num_epochs = 10, batch_size = 128, img_x = 60, img_y = 160, traini
     #                   verbose=1)
     # print(r)
 
-run_model()
+run_model(training_size = 7000)
