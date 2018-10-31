@@ -8,12 +8,16 @@ from keras.models import Sequential
 import triplets_mining
 from keras.layers import Lambda
 import numpy as np
-import os
+import os, triplet_loss_input
+from loading_weights import get_model_output
 
-def triplet_loss(x,y):
-    #anchor, positive, negative = tf.split(y, 3, axis=1)
+
+def multi_input_triplet_loss(x, y):
+    return triplet_loss(y)
+
+def triplet_loss(y):
     anchor, positive, negative = tf.split(y, 3, axis=1)
-
+    #anchor, positive, negative = tf.round(anchor), tf.round(positive), tf.round(negative)
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
 
@@ -21,7 +25,21 @@ def triplet_loss(x,y):
     loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
     return loss
 
-def build_model(img_x, img_y):
+def identity_loss(y_true, y_pred):
+    return K.mean(y_pred - 0 * y_true)
+
+def build_model(img_x, img_y, output_size = 50, f_type = 0, loss_type = 0):
+    """
+    f_type:
+        0 -> triplet loss with sigmoid output
+        1 -> triplet loss with binary output
+        2 -> structured loss with sigmoid output
+        3 -> structured loss with binary output
+    loss_type:
+        0 -> triplet_loss
+        1 -> mean_absolute_error
+        2 -> identity_loss
+    """
     input_shape = Input(shape=(img_x, img_y, 3))
 
     conv_0 = Conv2D(32, kernel_size=(3, 3), strides=(
@@ -37,19 +55,24 @@ def build_model(img_x, img_y):
     dense1 = Dense(4024, activation='relu')(flatten)
     dense2 = Dense(512, activation='relu')(dense1)
     merged_fc = concatenate([dense1, dense2])
-    hash_fc = Dense(50,
-                    activation=Lambda(lambda z: tf.divide(
-                        tf.add(
-                            K.sign(
-                                tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)),
-                            K.abs(
+
+    if f_type == 0 or f_type == 2:
+        hash_fc = Dense(output_size, activation="sigmoid")(merged_fc)
+    else:
+        hash_fc = Dense(output_size,
+                        activation=Lambda(lambda z: tf.divide(
+                            tf.add(
                                 K.sign(
-                                    tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)))),
-                        2)), kernel_initializer="lecun_normal")(merged_fc)
+                                    tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)),
+                                K.abs(
+                                    K.sign(
+                                        tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)))),
+                            2)), kernel_initializer="lecun_normal")(merged_fc)
 
     anchor = Input(shape=(60, 160, 3))
     positive = Input(shape=(60, 160, 3))
     negative = Input(shape=(60, 160, 3))
+    p_negative = Input(shape=(60, 160, 3))
 
     reid_model = Model(inputs=[input_shape], outputs=[hash_fc])
 
@@ -57,19 +80,33 @@ def build_model(img_x, img_y):
     positive_embed = reid_model(positive)
     negative_embed = reid_model(negative)
 
-    merged_output = concatenate([anchor_embed, positive_embed, negative_embed])
-    ####  Online code solution ##################################################
-    # loss = Lambda(triplet_loss, (1,))(merged_output)
+    if f_type > 1:
+        p_negative_embed = reid_model(p_negative)
+        merged_output = concatenate(
+            [anchor_embed, positive_embed, negative_embed, p_negative_embed])
+    else:
+        merged_output = concatenate([anchor_embed, positive_embed, negative_embed])
 
-    # model = Model(inputs=[anchor, positive, negative], outputs=loss)
-    # model.compile(optimizer='Adam', loss='mse',
-    #               metrics=["mae"])
+    if loss_type == 1:
+        loss = Lambda(triplet_loss, (1,))(merged_output)
+        if f_type <= 1:
+            model = Model(inputs=[anchor, positive, negative], outputs=loss)
+        else:
+            model = Model(inputs=[anchor, positive, negative, p_negative], outputs=loss)
+        model.compile(optimizer='Adam', loss='mae',
+                      metrics=["mae"])
+        return model
 
-    ### StackOverflow solution ##################################################
-    model = Model(inputs=[anchor, positive, negative], outputs=[merged_output])
-    model.compile(optimizer='Adam', loss=triplet_loss,
-                  metrics=[triplet_loss])
-    return model
+    if loss_type == 0:
+        if f_type <= 1:
+            model = Model(inputs=[anchor, positive, negative],
+                          outputs=[merged_output])
+        else:
+            model = Model(inputs=[anchor, positive,
+                                  negative, p_negative], outputs=[merged_output])
+        model.compile(optimizer='Adam', loss=multi_input_triplet_loss,
+                      metrics=[multi_input_triplet_loss])
+        return model
 
 
 class AccuracyHistory(keras.callbacks.Callback):
@@ -150,7 +187,7 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
     #print('Test accuracy:', score[1])
 
     #Save wights and bias as numpy arrays
-    np.save("np_output_weights_tripletloss_binary",
+    np.save("np_output_weights_tripletloss",
             cnn_model.layers[3].get_weights())
 
     # for epoch in range(num_epochs):
@@ -168,4 +205,44 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
     #     print(outputs)
 
 
-run_model(training_size=7000)
+def evaluate_model(dict_path, num_epochs=10, batch_size=128, img_x=60, img_y=160,
+                    training_size=10, validation_size=5, data_type=0,
+                    output_size=50, f_type=0, loss_type=0):
+    #triplet_loss_input.generate_input_data()
+
+    l, x = training_set(img_x, img_y, training_size, data_type)
+    lt, x_test = validation_set(img_x, img_y, validation_size, data_type)
+    cnn_model = build_model(img_x, img_y, output_size, f_type, loss_type)
+
+    print(cnn_model.summary())
+
+    history = AccuracyHistory()
+    for epoch in range(num_epochs):
+        print('Epoch %s' % epoch)
+
+        cnn_model.fit(x=x,
+                y=np.zeros(l),
+                batch_size=batch_size,
+                epochs=1,
+                verbose=1,
+                validation_data=(x_test, np.zeros(lt)),
+                callbacks=[history])
+
+        f = dict_path[f_type]
+        if f_type < 2:
+            np.save(f,
+                    cnn_model.layers[3].get_weights())
+        else:
+            np.save(f,
+                    cnn_model.layers[4].get_weights())
+
+        get_model_output(f, img_x, img_y, True)
+        l, x = training_set(img_x, img_y, training_size, data_type)
+
+
+d = {0: "triplet_loss_sigmoid_weights",
+    1: "triplet_loss_binary_weights",
+    2: "structured_loss_sigmoid_weights",
+    3: "structured_dloss_binary_weights"}
+
+evaluate_model(d)
