@@ -9,7 +9,7 @@ import triplets_mining
 from keras.layers import Lambda
 import numpy as np
 import os, triplet_loss_input
-from loading_weights import get_model_output
+from loading_weights import get_model_output, build_dict
 
 
 def multi_input_triplet_loss(x, y):
@@ -209,8 +209,8 @@ def evaluate_model(dict_path, num_epochs=10, batch_size=128, img_x=60, img_y=160
                     training_size=10, validation_size=5, data_type=0,
                     output_size=50, f_type=0, loss_type=0):
     #triplet_loss_input.generate_input_data()
+    #triplet_loss_input.generate_input_data(1)
 
-    l, x = training_set(img_x, img_y, training_size, data_type)
     lt, x_test = validation_set(img_x, img_y, validation_size, data_type)
     cnn_model = build_model(img_x, img_y, output_size, f_type, loss_type)
 
@@ -219,7 +219,7 @@ def evaluate_model(dict_path, num_epochs=10, batch_size=128, img_x=60, img_y=160
     history = AccuracyHistory()
     for epoch in range(num_epochs):
         print('Epoch %s' % epoch)
-
+        l, x = training_set(img_x, img_y, training_size, data_type)
         cnn_model.fit(x=x,
                 y=np.zeros(l),
                 batch_size=batch_size,
@@ -237,12 +237,12 @@ def evaluate_model(dict_path, num_epochs=10, batch_size=128, img_x=60, img_y=160
                     cnn_model.layers[4].get_weights())
 
         get_model_output(f, img_x, img_y, True)
-        l, x = training_set(img_x, img_y, training_size, data_type)
-
+    get_model_output(dict_path[f_type], img_x, img_y, data_type=1)
+    #build_dict(dict_path[f_type], img_x=img_x, img_y=img_y, data_type=1)
 
 d = {0: "triplet_loss_sigmoid_weights",
     1: "triplet_loss_binary_weights",
     2: "structured_loss_sigmoid_weights",
     3: "structured_dloss_binary_weights"}
 
-evaluate_model(d)
+evaluate_model(d, training_size=7000, validation_size=700)

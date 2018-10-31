@@ -34,12 +34,25 @@ def build_model(img_x, img_y):
     return model
 
 
+def build_dict(weights_file, img_x=60, img_y=160, save=False, data_type=1):
+    x_train, x_labels = data_reader.get_validation_set()
+    r = get_model_output(weights_file, img_x, img_y, save, data_type)
+    d = {}
+    for i in range(0,len(x_labels)):
+        if x_labels[i] in d:
+            d[x_labels[i]].append(r[i])
+        else:
+            d[x_labels[i]] = [r[i]]
+    return d
+
 def get_model_output(weights_file, img_x=60, img_y=160, save=False, data_type=0):
     """
     weights_file: name of the files where the weights are storaged
     data: data input for the network
     save: boolean, the output of the network will be save into a csv or not
     data_type: 0 for mining data, 1 for validation data
+
+    return value: the output of the network
     """
     if data_type:
         x_train, x_labels = data_reader.get_validation_set()
@@ -85,7 +98,7 @@ def get_model_output(weights_file, img_x=60, img_y=160, save=False, data_type=0)
     print(np.round(r[1]))
     print(r[45])
     print(np.round(r[45]))
-
+    return r
 
 #### Reading model structure #### (saved here as doc only)
 # for i in range(0,len(model.layers)):
