@@ -10,7 +10,8 @@ from keras.layers import Lambda
 import numpy as np
 import os, triplet_loss_input
 from loading_weights import get_model_output, build_dict
-
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID" 
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 def multi_input_triplet_loss(x, y):
     return triplet_loss(y)
@@ -270,7 +271,7 @@ def evaluate_model(dict_path, num_epochs=10, batch_size=128, img_x=60, img_y=160
                     cnn_model.layers[4].get_weights())
 
         get_model_output(f, img_x, img_y, True)
-    get_model_output(dict_path[f_type], img_x, img_y, data_type=1)
+    #get_model_output(dict_path[f_type], img_x, img_y, data_type=1)
     #build_dict(dict_path[f_type], img_x=img_x, img_y=img_y, data_type=1)
 
 d = {0: "triplet_loss_sigmoid_weights",
@@ -278,4 +279,4 @@ d = {0: "triplet_loss_sigmoid_weights",
     2: "structured_loss_sigmoid_weights",
     3: "structured_loss_binary_weights"}
 
-evaluate_model(d, f_type=1, training_size=70, validation_size=7)
+evaluate_model(d, f_type=1, training_size=7000, validation_size=700)
