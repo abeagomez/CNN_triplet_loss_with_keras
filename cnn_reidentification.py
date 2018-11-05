@@ -10,7 +10,7 @@ from keras.layers import Lambda
 import numpy as np
 import os, triplet_loss_input
 from loading_weights import get_model_output, build_dict
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID" 
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 def multi_input_triplet_loss(x, y):
@@ -251,26 +251,48 @@ def evaluate_model(dict_path, num_epochs=10, batch_size=128, img_x=60, img_y=160
     print(cnn_model.summary())
 
     history = AccuracyHistory()
-    for epoch in range(num_epochs):
-        print('Epoch %s' % epoch)
-        l, x = training_set(img_x, img_y, training_size, data_type)
-        cnn_model.fit(x=x,
+
+    # Iteration base model ####################################################
+    # for epoch in range(num_epochs):
+    #     print('Epoch %s' % epoch)
+    #     l, x = training_set(img_x, img_y, training_size, data_type)
+    #     cnn_model.fit(x=x,
+    #             y=np.zeros(l),
+    #             batch_size=batch_size,
+    #             epochs=1,
+    #             verbose=1,
+    #             validation_data=(x_test, np.zeros(lt)),
+    #             callbacks=[history])
+
+    #     f = dict_path[f_type]
+    #     if f_type < 2:
+    #         np.save(f,
+    #                 cnn_model.layers[3].get_weights())
+    #     else:
+    #         np.save(f,
+    #                 cnn_model.layers[4].get_weights())
+
+    #     get_model_output(f, img_x, img_y, True)
+    #########################################################################
+
+    ## One time mining model ################################################
+    l, x = training_set(img_x, img_y, training_size, data_type)
+    cnn_model.fit(x=x,
                 y=np.zeros(l),
                 batch_size=batch_size,
-                epochs=1,
+                epochs=num_epochs,
                 verbose=1,
                 validation_data=(x_test, np.zeros(lt)),
                 callbacks=[history])
+    f = dict_path[f_type]
+    if f_type < 2:
+        np.save(f,
+                cnn_model.layers[3].get_weights())
+    else:
+        np.save(f,
+                cnn_model.layers[4].get_weights())
 
-        f = dict_path[f_type]
-        if f_type < 2:
-            np.save(f,
-                    cnn_model.layers[3].get_weights())
-        else:
-            np.save(f,
-                    cnn_model.layers[4].get_weights())
-
-        get_model_output(f, img_x, img_y, True)
+    #Print validation data
     #get_model_output(dict_path[f_type], img_x, img_y, data_type=1)
     #build_dict(dict_path[f_type], img_x=img_x, img_y=img_y, data_type=1)
 
