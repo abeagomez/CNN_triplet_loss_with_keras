@@ -9,9 +9,10 @@ import triplets_mining
 from keras.layers import Lambda
 import numpy as np
 import os
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
-
-def structured_triplet_loss(y):
+def structured_triplet_loss(x, y):
     anchor, positive, anchor_neg, positive_neg = tf.split(y, 4, axis=1)
     #anchor, positive = tf.round(anchor), tf.round(positive)
     #anchor_neg, positive_neg = tf.round(anchor_neg), tf.round(positive_neg)
@@ -67,11 +68,15 @@ def build_model(img_x, img_y):
 
     merged_output = concatenate(
         [anchor_embed, positive_embed, a_negative_embed, p_negative_embed])
-    loss = Lambda(structured_triplet_loss, (1,))(merged_output)
+    #loss = Lambda(structured_triplet_loss, (1,))(merged_output)
 
-    model = Model(inputs=[anchor, positive, a_negative, p_negative], outputs=loss)
-    model.compile(optimizer='Adam', loss='mse',
-                  metrics=["mae"])
+    #model = Model(inputs=[anchor, positive, a_negative, p_negative], outputs=loss)
+    #model.compile(optimizer='Adam', loss='mse',
+    #              metrics=["mae"])
+    model = Model(inputs=[anchor, positive, a_negative,
+                          p_negative], outputs=[merged_output])
+    model.compile(optimizer='Adam', loss=structured_triplet_loss,
+                  metrics=[structured_triplet_loss])
     return model
 
 class AccuracyHistory(keras.callbacks.Callback):
@@ -176,4 +181,4 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
     #     #functor = K.function([inp, K.learning_phase()], outputs)
     #     print(outputs)
 
-run_model()
+run_model(training_size=7000, validation_size=700)
