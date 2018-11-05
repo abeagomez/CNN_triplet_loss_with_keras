@@ -301,4 +301,4 @@ d = {0: "triplet_loss_sigmoid_weights",
     2: "structured_loss_sigmoid_weights",
     3: "structured_loss_binary_weights"}
 
-evaluate_model(d, f_type=1, training_size=7000, validation_size=700)
+evaluate_model(d, f_type=3, training_size=7000, validation_size=700)
