@@ -3,4 +3,6 @@
 *.jpg
 *.pyc
 *.npy
-
+*.zip
+*.json
+*.png

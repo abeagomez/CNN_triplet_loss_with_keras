@@ -11,6 +11,7 @@ import triplets_mining
 from keras.layers import Lambda
 import numpy as np
 import os
+from scipy.spatial import distance
 
 def build_model(img_x, img_y):
     input_shape = Input(shape=(img_x, img_y, 3))
@@ -33,10 +34,17 @@ def build_model(img_x, img_y):
 
     return model
 
+def hamming_distance(x, y):
+    dist = 0
+    for i in range(len(x)):
+        if x[i] != y[i]:
+            dist += 1
+    return dist
 
 def build_dict(weights_file, img_x=60, img_y=160, save=False, data_type=1):
     x_train, x_labels = data_reader.get_validation_set()
     r = get_model_output(weights_file, img_x, img_y, save, data_type)
+    #r = np.round(r)
     d = {}
     for i in range(0,len(x_labels)):
         if x_labels[i] in d:
@@ -44,6 +52,39 @@ def build_dict(weights_file, img_x=60, img_y=160, save=False, data_type=1):
         else:
             d[x_labels[i]] = [r[i]]
     return d
+
+
+def true_positives_and_false_negatives(d, alpha, distance=hamming_distance):
+    t_p, f_n = 0, 0
+    for k in d:
+        for i in range(0,len(d[k])):
+            for j in range(0, len(d[k])):
+                if i != j and  distance(d[k][i],d[k][j]) <= alpha:
+                    t_p += 1
+                else:
+                    f_n += 1
+    return t_p, f_n
+
+def false_positives_and_true_negatives(d, alpha, distance=hamming_distance):
+    f_p, t_n = 0, 0
+    for k in d:
+        for i in range(0,len(d[k])):
+            t1, t2 = __check_all_keys__(d,k,i,alpha,distance)
+            f_p += t1
+            t_n += t2
+    return f_p, t_n
+
+
+def __check_all_keys__(d, k, index, alpha, distance):
+    f_p, t_n = 0, 0
+    for key in d:
+        if key != k:
+            for element in d[key]:
+                if distance(element, d[k][index]) > alpha:
+                    t_n += 1
+                else:
+                    f_p += 1
+    return f_p, t_n
 
 def get_model_output(weights_file, img_x=60, img_y=160, save=False, data_type=0):
     """
@@ -92,12 +133,12 @@ def get_model_output(weights_file, img_x=60, img_y=160, save=False, data_type=0)
         else:
             np.savetxt("outputs_for_mining.csv", r, delimiter=",")
 
-    print((r[0]))
-    print(np.round(r[0]))
-    print(r[1])
-    print(np.round(r[1]))
-    print(r[45])
-    print(np.round(r[45]))
+    # print((r[0]))
+    # print(np.round(r[0]))
+    # print(r[1])
+    # print(np.round(r[1]))
+    # print(r[45])
+    # print(np.round(r[45]))
     return r
 
 #### Reading model structure #### (saved here as doc only)

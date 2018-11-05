@@ -42,6 +42,7 @@ def build_model(img_x, img_y, output = 0):
                                         tf.subtract(keras.layers.activations.sigmoid(x=z), 0.5)))),
                             2)), kernel_initializer="lecun_normal")(merged_fc)
     else:
+
         ### Sigmoid output
         hash_fc = Dense(50,
                         activation="sigmoid",
@@ -50,11 +51,11 @@ def build_model(img_x, img_y, output = 0):
     model = Model(inputs=[input_shape], outputs=[hash_fc])
     return model
 
-def generate_input_data(data_type=0):
+def generate_input_data(data_type=0, output=0):
     if data_type:
-        x_train, x_labels = data_reader.get_validation_set()
+        x_train, _ = data_reader.get_validation_set()
     else:
-        x_train, x_labels = data_reader.get_training_set()
+        x_train, _ = data_reader.get_training_set()
 
     batch_size = 128
     epochs = 10
