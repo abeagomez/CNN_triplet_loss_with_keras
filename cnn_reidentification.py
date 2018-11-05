@@ -241,8 +241,8 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
 def evaluate_model(dict_path, num_epochs=10, batch_size=128, img_x=60, img_y=160,
                     training_size=10, validation_size=5, data_type=0,
                     output_size=50, f_type=0, loss_type=0):
-    #triplet_loss_input.generate_input_data()
-    #triplet_loss_input.generate_input_data(1)
+    triplet_loss_input.generate_input_data()
+    triplet_loss_input.generate_input_data(1)
 
     lt, x_test = validation_set(img_x, img_y, validation_size, data_type)
     cnn_model = build_model(img_x, img_y, output_size, f_type, loss_type)
@@ -276,6 +276,6 @@ def evaluate_model(dict_path, num_epochs=10, batch_size=128, img_x=60, img_y=160
 d = {0: "triplet_loss_sigmoid_weights",
     1: "triplet_loss_binary_weights",
     2: "structured_loss_sigmoid_weights",
-    3: "structured_dloss_binary_weights"}
+    3: "structured_loss_binary_weights"}
 
-evaluate_model(d, training_size=7000, validation_size=700)
+evaluate_model(d, f_type=1, training_size=70, validation_size=7)
