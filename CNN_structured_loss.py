@@ -14,18 +14,31 @@ os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 def structured_triplet_loss(x, y):
     anchor, positive, anchor_neg, positive_neg = tf.split(y, 4, axis=1)
-    #anchor, positive = tf.round(anchor), tf.round(positive)
-    #anchor_neg, positive_neg = tf.round(anchor_neg), tf.round(positive_neg)
-    pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
-    neg_dist_anch = tf.reduce_sum(tf.square(tf.subtract(anchor, anchor_neg)), 1)
-    neg_dist_pos = tf.reduce_sum(tf.square(tf.subtract(anchor, positive_neg)), 1)
+
+    # pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
+    # neg_dist_anch = tf.reduce_sum(tf.square(tf.subtract(anchor, anchor_neg)), 1)
+    # neg_dist_pos = tf.reduce_sum(tf.square(tf.subtract(anchor, positive_neg)), 1)
+
+    # term_anchor = tf.maximum(0.0, tf.subtract(1.0, neg_dist_anch))
+    # term_positive = tf.maximum(0.0, tf.subtract(1.0, neg_dist_pos))
+    # inner_max = tf.maximum(term_anchor, term_positive)
+    # basic_loss = tf.maximum(tf.add(inner_max, pos_dist), 0.0)
+    # loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
+
+    # l2 norm
+    pos_dist = tf.reduce_sum(
+        tf.square(tf.norm(tf.subtract(anchor, positive))), 1)
+    neg_dist_anch = tf.reduce_sum(
+        tf.square(tf.norm(tf.subtract(anchor, anchor_neg))), 1)
+    neg_dist_pos = tf.reduce_sum(
+        tf.square(tf.norm(tf.subtract(anchor, positive_neg))), 1)
 
     term_anchor = tf.maximum(0.0, tf.subtract(1.0, neg_dist_anch))
     term_positive = tf.maximum(0.0, tf.subtract(1.0, neg_dist_pos))
     inner_max = tf.maximum(term_anchor, term_positive)
     basic_loss = tf.maximum(tf.add(inner_max, pos_dist), 0.0)
-    loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
-    return loss
+    # loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
+    return basic_loss
 
 def build_model(img_x, img_y):
     input_shape = Input(shape=(img_x, img_y, 3))
