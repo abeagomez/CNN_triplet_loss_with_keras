@@ -17,13 +17,43 @@ def multi_input_triplet_loss(x, y):
 
 def triplet_loss(y):
     anchor, positive, negative = tf.split(y, 3, axis=1)
-    #anchor, positive, negative = tf.round(anchor), tf.round(positive), tf.round(negative)
+
+    #Original loss
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
 
     basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), 0.05)
     loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
+
     return loss
+
+def structured_triplet_loss(x, y):
+    anchor, positive, anchor_neg, positive_neg = tf.split(y, 4, axis=1)
+
+    # Simple approach
+    # pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
+    # neg_dist_anch = tf.reduce_sum(
+    #     tf.square(tf.subtract(anchor, anchor_neg)), 1)
+    # neg_dist_pos = tf.reduce_sum(
+    #     tf.square(tf.subtract(anchor, positive_neg)), 1)
+
+    # term_anchor = tf.maximum(0.0, tf.subtract(1.0, neg_dist_anch))
+    # term_positive = tf.maximum(0.0, tf.subtract(1.0, neg_dist_pos))
+    # inner_max = tf.maximum(term_anchor, term_positive)
+    # basic_loss = tf.maximum(tf.add(inner_max, pos_dist), 0.0)
+    # loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
+
+    # l2 norm
+    pos_dist = tf.reduce_sum(tf.square(tf.norm(tf.subtract(anchor, positive))), 1)
+    neg_dist_anch = tf.reduce_sum(tf.square(tf.norm(tf.subtract(anchor, anchor_neg))), 1)
+    neg_dist_pos = tf.reduce_sum(tf.square(tf.norm(tf.subtract(anchor, positive_neg))), 1)
+
+    term_anchor = tf.maximum(0.0, tf.subtract(1.0, neg_dist_anch))
+    term_positive = tf.maximum(0.0, tf.subtract(1.0, neg_dist_pos))
+    inner_max = tf.maximum(term_anchor, term_positive)
+    basic_loss = tf.maximum(tf.add(inner_max, pos_dist), 0.0)
+    # loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
+    return basic_loss
 
 def identity_loss(y_true, y_pred):
     return K.mean(y_pred - 0 * y_true)
@@ -92,6 +122,7 @@ def build_model(img_x, img_y, output_size = 50, f_type = 0, loss_type = 0):
         if f_type <= 1:
             model = Model(inputs=[anchor, positive, negative], outputs=loss)
         else:
+            #TODO: Aqui le estamos pasando esto al loss de 3 parametros
             model = Model(inputs=[anchor, positive, negative, p_negative], outputs=loss)
         model.compile(optimizer='Adam', loss='mae',
                       metrics=["mae"])
@@ -101,11 +132,13 @@ def build_model(img_x, img_y, output_size = 50, f_type = 0, loss_type = 0):
         if f_type <= 1:
             model = Model(inputs=[anchor, positive, negative],
                           outputs=[merged_output])
+            model.compile(optimizer='Adam', loss=multi_input_triplet_loss,
+                          metrics=[multi_input_triplet_loss])
         else:
             model = Model(inputs=[anchor, positive,
                                   negative, p_negative], outputs=[merged_output])
-        model.compile(optimizer='Adam', loss=multi_input_triplet_loss,
-                      metrics=[multi_input_triplet_loss])
+            model.compile(optimizer='Adam', loss=structured_triplet_loss,
+                          metrics=[structured_triplet_loss])
         return model
 
 

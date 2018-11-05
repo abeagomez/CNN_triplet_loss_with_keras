@@ -1,4 +1,3 @@
-from keras.models import model_from_json
 import data_reader
 import keras
 from keras import metrics
