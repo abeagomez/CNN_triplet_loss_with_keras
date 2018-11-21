@@ -11,7 +11,7 @@ training_data = data_reader.get_training_set()
 images, labels = data_reader.increase_data(training_data[0], training_data[1])
 
 #get random triplets for the first iteration of mining
-triplets = triplets_mining.get_random_triplets(40000, images, labels)
+triplets = triplets_mining.get_random_triplets(30000, images, labels)
 
 #Get triplets ready as input for the network
 # l is the number of elements in each triplet
@@ -22,7 +22,7 @@ model = CNN_triplet_loss_functional.build_model(60, 160)
 print(model.summary())
 
 history = CNN_triplet_loss_functional.AccuracyHistory()
-num_epochs = 10
+num_epochs = 30
 for epoch in range(num_epochs):
     print('Epoch %s' % epoch)
     model.fit(triplets,
@@ -39,7 +39,7 @@ val_images, val_labels = data_reader.get_validation_set()
 validation_output_dict = loading_weights.build_dict(
     "triplet_loss_sigmoid_weights", val_images, val_labels)
 
-alpha = 0.05
+alpha = 0.1
 t_p, f_n = loading_weights.true_positives_and_false_negatives(validation_output_dict, alpha)
 f_p, t_n = loading_weights.false_positives_and_true_negatives(validation_output_dict, alpha)
 

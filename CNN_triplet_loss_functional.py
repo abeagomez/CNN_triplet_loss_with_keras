@@ -18,7 +18,7 @@ def triplet_loss(x, y):
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     neg_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, negative)), 1)
 
-    basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), 0.05)
+    basic_loss = tf.add(tf.subtract(pos_dist, neg_dist), 0.01)
     loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
     return loss
 
@@ -37,7 +37,7 @@ def build_model(img_x, img_y):
     dense1 = Dense(4024, activation='relu')(flatten)
     dense2 = Dense(512, activation='relu')(dense1)
     merged_fc = concatenate([dense1, dense2])
-    hash_fc = Dense(50, activation="sigmoid")(merged_fc)
+    hash_fc = Dense(100, activation="sigmoid")(merged_fc)
 
     anchor = Input(shape=(img_x, img_y, 3))
     positive = Input(shape=(img_x, img_y, 3))
