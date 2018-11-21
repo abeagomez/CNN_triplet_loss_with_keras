@@ -9,8 +9,10 @@ import triplets_mining
 from keras.layers import Lambda
 import numpy as np
 import os
+import triplet_loss_input
+from loading_weights import get_model_output, build_dict
 
-def triplet_loss(y):
+def triplet_loss(x, y):
     anchor, positive, negative = tf.split(y, 3, axis = 1)
     #anchor, positive, negative = tf.round(anchor), tf.round(positive), tf.round(negative)
     pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
@@ -37,9 +39,9 @@ def build_model(img_x, img_y):
     merged_fc = concatenate([dense1, dense2])
     hash_fc = Dense(50, activation="sigmoid")(merged_fc)
 
-    anchor = Input(shape=(60, 160, 3))
-    positive = Input(shape=(60, 160, 3))
-    negative = Input(shape=(60, 160, 3))
+    anchor = Input(shape=(img_x, img_y, 3))
+    positive = Input(shape=(img_x, img_y, 3))
+    negative = Input(shape=(img_x, img_y, 3))
 
     reid_model = Model(inputs=[input_shape], outputs=[hash_fc])
 
@@ -48,11 +50,13 @@ def build_model(img_x, img_y):
     negative_embed = reid_model(negative)
 
     merged_output = concatenate([anchor_embed, positive_embed, negative_embed])
-    loss = Lambda(triplet_loss, (1,))(merged_output)
+    #loss = Lambda(triplet_loss, (1,))(merged_output)
 
-    model = Model(inputs=[anchor, positive, negative], outputs=loss)
-    model.compile(optimizer='Adam', loss='mse',
-                  metrics=["mae"])
+    #model = Model(inputs=[anchor, positive, negative], outputs=loss)
+    #model.compile(optimizer='Adam', loss='mse',
+    #              metrics=["mae"])
+    model = Model(inputs=[anchor, positive, negative], outputs=[merged_output])
+    model.compile(optimizer='Adam', loss=triplet_loss, metrics=[triplet_loss])
     return model
 
 class AccuracyHistory(keras.callbacks.Callback):
@@ -76,7 +80,7 @@ class CollectWeightCallback(keras.callbacks.Callback):
 def training_set(img_x, img_y, no_triplets, data_type):
     #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
     #Cada posicion es una imagen RGB de 60(ancho)x160(alto)
-    x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(no_triplets,data_type)
+    x_anchor, x_positive, x_negative = triplets_mining.get_hard_triplets(no_triplets, data_type)
     l = len(x_anchor)
     x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
     x_anchor = x_anchor.astype('float32')
@@ -147,4 +151,55 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
     #     print(outputs)
 
 
-run_model(training_size=10)
+def evaluate_model(num_epochs=10, batch_size=128, img_x=60, img_y=160,
+                    training_size=10, validation_size=5, data_type=0,
+                    output_size=50):
+    triplet_loss_input.generate_input_data()
+    triplet_loss_input.generate_input_data(1)
+
+    lt, x_test = validation_set(img_x, img_y, validation_size, data_type)
+    cnn_model = build_model(img_x, img_y)
+
+    print(cnn_model.summary())
+
+    history = AccuracyHistory()
+
+    # Iteration base model ####################################################
+    # for epoch in range(num_epochs):
+    #     print('Epoch %s' % epoch)
+    #     l, x = training_set(img_x, img_y, training_size, data_type)
+    #     cnn_model.fit(x=x,
+    #             y=np.zeros(l),
+    #             batch_size=batch_size,
+    #             epochs=1,
+    #             verbose=1,
+    #             validation_data=(x_test, np.zeros(lt)),
+    #             callbacks=[history])
+
+    #     f = dict_path[f_type]
+    #     if f_type < 2:
+    #         np.save(f,
+    #                 cnn_model.layers[3].get_weights())
+    #     else:
+    #         np.save(f,
+    #                 cnn_model.layers[4].get_weights())
+
+    #     get_model_output(f, img_x, img_y, True)
+    #########################################################################
+
+    ## One time mining model ################################################
+    l, x = training_set(img_x, img_y, training_size, data_type)
+    cnn_model.fit(x=x,
+                  y=np.zeros(l),
+                  batch_size=batch_size,
+                  epochs=num_epochs,
+                  verbose=1,
+                  validation_data=(x_test, np.zeros(lt)),
+                  callbacks=[history])
+    np.save("triplet_loss_sigmoid_weights", cnn_model.layers[3].get_weights())
+
+    #Print validation data
+    #get_model_output(dict_path[f_type], img_x, img_y, data_type=1)
+    #build_dict(dict_path[f_type], img_x=img_x, img_y=img_y, data_type=1)
+
+#evaluate_model()

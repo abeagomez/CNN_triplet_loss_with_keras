@@ -40,12 +40,11 @@ def hamming_distance(x, y):
             dist += 1
     return dist
 
-def build_dict(weights_file, img_x=60, img_y=160, save=False, data_type=1):
-    x_train, x_labels = data_reader.get_validation_set()
-    r = get_model_output(weights_file, img_x, img_y, save, data_type)
+def build_dict(weights_file, x_train, x_labels, img_x=60, img_y=160, save=False, data_type=1):
+    r = get_model_output(weights_file, x_train, x_labels, img_x, img_y, save, data_type)
     #r = np.round(r)
     d = {}
-    for i in range(0,len(x_labels)):
+    for i in range(len(x_labels)):
         if x_labels[i] in d:
             d[x_labels[i]].append(r[i])
         else:
@@ -53,7 +52,7 @@ def build_dict(weights_file, img_x=60, img_y=160, save=False, data_type=1):
     return d
 
 
-def true_positives_and_false_negatives(d, alpha, distance=hamming_distance):
+def true_positives_and_false_negatives(d, alpha, distance=distance.euclidean):
     t_p, f_n = 0, 0
     for k in d:
         for i in range(0,len(d[k])):
@@ -64,11 +63,12 @@ def true_positives_and_false_negatives(d, alpha, distance=hamming_distance):
                     f_n += 1
     return t_p, f_n
 
-def false_positives_and_true_negatives(d, alpha, distance=hamming_distance):
+
+def false_positives_and_true_negatives(d, alpha, distance=distance.euclidean):
     f_p, t_n = 0, 0
     for k in d:
         for i in range(0,len(d[k])):
-            t1, t2 = __check_all_keys__(d,k,i,alpha,distance)
+            t1, t2 = __check_all_keys__(d, k, i, alpha, distance)
             f_p += t1
             t_n += t2
     return f_p, t_n
@@ -85,7 +85,7 @@ def __check_all_keys__(d, k, index, alpha, distance):
                     f_p += 1
     return f_p, t_n
 
-def get_model_output(weights_file, img_x=60, img_y=160, save=False, data_type=0):
+def get_model_output(weights_file, x_train, x_labels, img_x=60, img_y=160, save=False, data_type=0):
     """
     weights_file: name of the files where the weights are storaged
     data: data input for the network
@@ -94,11 +94,6 @@ def get_model_output(weights_file, img_x=60, img_y=160, save=False, data_type=0)
 
     return value: the output of the network
     """
-    if data_type:
-        x_train, x_labels = data_reader.get_validation_set()
-    else:
-        x_train, x_labels = data_reader.get_training_set()
-
     x_train = x_train.reshape(x_train.shape[0], img_x, img_y, 3)
     input_shape = (img_x, img_y, 3)
     x_train = x_train.astype('float32')

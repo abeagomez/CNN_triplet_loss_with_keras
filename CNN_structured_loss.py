@@ -13,7 +13,7 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 def structured_triplet_loss(x, y):
-    anchor, positive, anchor_neg, positive_neg = tf.split(y, 4, axis=1)
+    xi, yi, yk, yl = tf.split(y, 4, axis=1)
 
     # pos_dist = tf.reduce_sum(tf.square(tf.subtract(anchor, positive)), 1)
     # neg_dist_anch = tf.reduce_sum(tf.square(tf.subtract(anchor, anchor_neg)), 1)
@@ -25,20 +25,33 @@ def structured_triplet_loss(x, y):
     # basic_loss = tf.maximum(tf.add(inner_max, pos_dist), 0.0)
     # loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
 
-    # l2 norm
-    pos_dist = tf.reduce_sum(
-        tf.square(tf.norm(tf.subtract(anchor, positive))), 1)
-    neg_dist_anch = tf.reduce_sum(
-        tf.square(tf.norm(tf.subtract(anchor, anchor_neg))), 1)
-    neg_dist_pos = tf.reduce_sum(
-        tf.square(tf.norm(tf.subtract(anchor, positive_neg))), 1)
+    norm_xi_yk = tf.reduce_sum(tf.square(tf.subtract(xi, yk)), 1)
+    norm_yi_yl = tf.reduce_sum(tf.square(tf.subtract(yi, yl)), 1)
+    norm_xi_yi = tf.reduce_sum(tf.square(tf.subtract(xi, yi)), 1)
 
-    term_anchor = tf.maximum(0.0, tf.subtract(1.0, neg_dist_anch))
-    term_positive = tf.maximum(0.0, tf.subtract(1.0, neg_dist_pos))
-    inner_max = tf.maximum(term_anchor, term_positive)
-    basic_loss = tf.maximum(tf.add(inner_max, pos_dist), 0.0)
-    # loss = tf.reduce_mean(tf.maximum(basic_loss, 0.0), 0)
-    return basic_loss
+    dif_one_and_norm_xi_yk = tf.subtract(tf.ones(
+        tf.shape(norm_xi_yk), dtype=tf.float32), norm_xi_yk)
+    dif_one_and_norm_yi_yl = tf.subtract(tf.ones(
+        tf.shape(norm_yi_yl), dtype=tf.float32), norm_yi_yl)
+
+    term1 = dif_one_and_norm_xi_yk
+    term2 = dif_one_and_norm_yi_yl
+
+    max_zero_and_term1 = tf.maximum(
+        tf.zeros(tf.shape(term1), dtype=tf.float32), term1)
+    max_zero_and_term2 = tf.maximum(
+        tf.zeros(tf.shape(term2), dtype=tf.float32), term2)
+
+    term3 = max_zero_and_term1
+    term4 = max_zero_and_term2
+    max_term3_and_term4 = tf.maximum(term3, term4)
+
+    F_xi_yi = tf.add(max_term3_and_term4, norm_xi_yi)
+    max_zero_and_F_xi_yi = tf.maximum(
+        tf.zeros(tf.shape(F_xi_yi), dtype=tf.float32), F_xi_yi)
+    term5 = max_zero_and_F_xi_yi
+    loss = tf.divide(tf.reduce_sum(term5), tf.to_float(tf.size(term5)))
+    return loss
 
 def build_model(img_x, img_y):
     input_shape = Input(shape=(img_x, img_y, 3))
@@ -194,4 +207,4 @@ def run_model(num_epochs=10, batch_size=128, img_x=60, img_y=160, training_size=
     #     #functor = K.function([inp, K.learning_phase()], outputs)
     #     print(outputs)
 
-run_model(training_size=7000, validation_size=700)
+run_model(training_size=1000, validation_size=10)

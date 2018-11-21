@@ -16,18 +16,29 @@ def triplet_loss(a, p, n, data_type):
 def transform_to_binary(data):
     return [[0 if i < 0.5 else 1 for i in output] for output in data]
 
-#Set to 50 random triplets
-def get_random_triplets():
-    training_data = data_reader.get_training_set()
-    images, labels = training_data[0], training_data[1]
-    anchor = []
-    positive = []
-    negative = []
-    for i in range(0,50):
-        anchor.append(images[rd.randint(0, len(images)-1)])
-        positive.append(images[rd.randint(0, len(images)-1)])
-        negative.append(images[rd.randint(0, len(images)-1)])
-    return np.array(anchor), np.array(positive), np.array(negative)
+def get_random_triplets(no_triplets, images, labels):
+    anchor_set = []
+    positive_set = []
+    negative_set = []
+    data_dict = label_image_dict(images, labels)
+    for i in range(no_triplets):
+        anchor_dic_key = rd.randint(0, len(data_dict)-1)
+        anchor_value_len = len(data_dict[anchor_dic_key])
+        anchor = data_dict[anchor_dic_key][rd.randint(
+            0, anchor_value_len - 1)]
+
+        positive = data_dict[anchor_dic_key][rd.randint(
+            0, anchor_value_len - 1)]
+
+        k = anchor_dic_key
+        while k == anchor_dic_key:
+            k = rd.randint(0, len(data_dict)-1)
+        negative_value_len = len(data_dict[k])
+        negative = data_dict[k][rd.randint(0, negative_value_len - 1)]
+        anchor_set.append(anchor)
+        positive_set.append(positive)
+        negative_set.append(negative)
+    return np.array(anchor_set), np.array(positive_set), np.array(negative_set)
 
 def get_valid_validation_triplets(triplets, data_type):
     print("======= Generating Validation Triplets =======")
@@ -217,6 +228,33 @@ def build_validation_dict():
                 (output_data[i], binary_output_data[i], images[i])]
     return data_dict
 
+def label_image_dict(images, labels):
+    data_dict = {}
+    for i in range(len(images)):
+        if int(labels[i]) in data_dict:
+            data_dict[int(labels[i])].append(images[i])
+        else:
+            data_dict[int(labels[i])] = [images[i]]
+    return data_dict
+
+def prepare_triplets(img_x, img_y, triplets):
+    #Esto de abajo son 3 arrays de numpy que representan imagenes RGB
+    #Cada posicion es una imagen RGB de 60(ancho)x160(alto)
+    x_anchor, x_positive, x_negative = triplets
+    l = len(x_anchor)
+    x_anchor = x_anchor.reshape(x_anchor.shape[0], img_x, img_y, 3)
+    x_anchor = x_anchor.astype('float32')
+    x_anchor /= 255
+
+    x_positive = x_positive.reshape(x_positive.shape[0], img_x, img_y, 3)
+    x_positive = x_positive.astype('float32')
+    x_positive /= 255
+
+    x_negative = x_negative.reshape(x_negative.shape[0], img_x, img_y, 3)
+    x_negative = x_negative.astype('float32')
+    x_negative /= 255
+
+    return l, [x_anchor, x_positive, x_negative]
 
 #print(len(get_valid_validation_triplets(10,0)[0]))
 #print(len(get_hard_triplets(300, 0)[0]))
