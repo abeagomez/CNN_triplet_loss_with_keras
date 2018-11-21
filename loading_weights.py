@@ -51,6 +51,27 @@ def build_dict(weights_file, x_train, x_labels, img_x=60, img_y=160, save=False,
             d[x_labels[i]] = [r[i]]
     return d
 
+def print_performance_measures(validation_output_dict, alpha):
+    t_p, f_n = true_positives_and_false_negatives(
+        validation_output_dict, alpha)
+    f_p, t_n = false_positives_and_true_negatives(
+        validation_output_dict, alpha)
+    print("Con distancia euclidiana y sin redondear")
+    print("Alpha = %.3f y Total:" % alpha)
+    print(t_p + f_n + f_p + t_n)
+    print("True Positives = %d" % t_p)
+    print("True negatives = %d" % t_n)
+    print("False Positives = %d" % f_p)
+    print("False Negatives = %d" % f_n)
+    print("")
+    precision = t_p/(t_p + f_p)
+    recall = t_p/(t_p + f_n)
+    accuracy = (t_p + t_n)/(t_p + f_n + f_p + t_n)
+    f1_score = 2*((precision*recall)/(precision+recall))
+    print("Precision = %.5f" % precision)
+    print("Recall = %.5f" % recall)
+    print("Accuracy = %.5f" % accuracy)
+    print("F1 Score = %.5f" % f1_score)
 
 def true_positives_and_false_negatives(d, alpha, distance=distance.euclidean):
     t_p, f_n = 0, 0
