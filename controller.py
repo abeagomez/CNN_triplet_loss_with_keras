@@ -35,27 +35,30 @@ for epoch in range(num_epochs):
     np.save("triplet_loss_sigmoid_weights",
             model.layers[3].get_weights())
 
-val_images, val_labels = data_reader.get_validation_set()
-validation_output_dict = loading_weights.build_dict(
-    "triplet_loss_sigmoid_weights", val_images, val_labels)
+    val_images, val_labels = data_reader.get_validation_set()
+    validation_output_dict = loading_weights.build_dict(
+        "triplet_loss_sigmoid_weights", val_images, val_labels)
 
-alpha = 0.1
-t_p, f_n = loading_weights.true_positives_and_false_negatives(validation_output_dict, alpha)
-f_p, t_n = loading_weights.false_positives_and_true_negatives(validation_output_dict, alpha)
+    alpha = 0.1
+    t_p, f_n = loading_weights.true_positives_and_false_negatives(
+        validation_output_dict, alpha)
+    f_p, t_n = loading_weights.false_positives_and_true_negatives(
+        validation_output_dict, alpha)
 
-print("Con distancia euclidiana y sin redondear")
-print("Alpha = %.3f y Total:" % alpha)
-print(t_p + f_n + f_p + t_n)
-print("True Positives = %d" % t_p)
-print("True negatives = %d" % t_n)
-print("False Positives = %d" % f_p)
-print("False Negatives = %d" % f_n)
-print("")
-precision = t_p/(t_p + f_p)
-recall = t_p/(t_p + f_n)
-accuracy = (t_p + t_n)/(t_p + f_n + f_p + t_n)
-f1_score = 2*((precision*recall)/(precision+recall))
-print("Precision = %.5f" % precision)
-print("Recall = %.5f" % recall)
-print("Accuracy = %.5f" % accuracy)
-print("F1 Score = %.5f" % f1_score)
+    print("Con distancia euclidiana y sin redondear")
+    print("Alpha = %.3f y Total:" % alpha)
+    print(t_p + f_n + f_p + t_n)
+    print("True Positives = %d" % t_p)
+    print("True negatives = %d" % t_n)
+    print("False Positives = %d" % f_p)
+    print("False Negatives = %d" % f_n)
+    print("")
+    precision = t_p/(t_p + f_p)
+    recall = t_p/(t_p + f_n)
+    accuracy = (t_p + t_n)/(t_p + f_n + f_p + t_n)
+    f1_score = 2*((precision*recall)/(precision+recall))
+    print("Precision = %.5f" % precision)
+    print("Recall = %.5f" % recall)
+    print("Accuracy = %.5f" % accuracy)
+    print("F1 Score = %.5f" % f1_score)
+
