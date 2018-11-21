@@ -11,7 +11,7 @@ training_data = data_reader.get_training_set()
 images, labels = data_reader.increase_data(training_data[0], training_data[1])
 
 #get random triplets for the first iteration of mining
-triplets = triplets_mining.get_random_triplets(7000, images, labels)
+triplets = triplets_mining.get_random_triplets(40000, images, labels)
 
 #Get triplets ready as input for the network
 # l is the number of elements in each triplet
@@ -49,6 +49,11 @@ print("True negatives = %d" % t_n)
 print("False Positives = %d" % f_p)
 print("False Negatives = %d" % f_n)
 print("")
-print("Precision = %.5f" % (t_p/(t_p + f_p)))
-print("Recall = %.5f" % (t_p/(t_p + f_n)))
-print("Accuracy = %.5f" % ((t_p + t_n)/(t_p + f_n + f_p + t_n)))
+precision = t_p/(t_p + f_p)
+recall = t_p/(t_p + f_n)
+accuracy = (t_p + t_n)/(t_p + f_n + f_p + t_n)
+f1_score = 2*((precision*recall)/(precision+recall))
+print("Precision = %.5f" % precision)
+print("Recall = %.5f" % recall)
+print("Accuracy = %.5f" % accuracy)
+print("F1 Score = %.5f" % f1_score)
