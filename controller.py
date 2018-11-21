@@ -21,6 +21,7 @@ l, triplets =triplets_mining.prepare_triplets(60, 160, triplets)
 model = CNN_triplet_loss_functional.build_model(60, 160)
 print(model.summary())
 
+history = CNN_triplet_loss_functional.AccuracyHistory()
 num_epochs = 10
 for epoch in range(num_epochs):
     print('Epoch %s' % epoch)
@@ -28,7 +29,8 @@ for epoch in range(num_epochs):
             y=np.zeros(l),
             batch_size=120,
             epochs=1,
-            verbose=1)
+            verbose=1,
+            callbacks=[history])
 
     np.save("triplet_loss_sigmoid_weights",
             model.layers[3].get_weights())
