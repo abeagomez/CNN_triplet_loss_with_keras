@@ -25,7 +25,7 @@ model = CNN_triplet_loss_functional.build_model(60, 160)
 print(model.summary())
 
 #declare arrays to store accuracy, precision, recall and F1 score
-accuracy, precision, recall, f1_score = [], [], [], []
+l_accuracy, l_precision, l_recall, l_f1_score = [], [], [], []
 
 history = CNN_triplet_loss_functional.AccuracyHistory()
 num_epochs = 30
@@ -49,10 +49,12 @@ for epoch in range(num_epochs):
     f_p, t_n = loading_weights.false_positives_and_true_negatives(
         validation_output_dict, alpha)
 
-    precision.append(t_p/(t_p + f_p))
-    recall.append(t_p/(t_p + f_n))
-    accuracy.append((t_p + t_n)/(t_p + f_n + f_p + t_n))
-    f1_score.append(2*((precision*recall)/(precision+recall)))
+    l_precision.append(t_p/(t_p + f_p))
+    l_recall.append(t_p/(t_p + f_n))
+    l_accuracy.append((t_p + t_n)/(t_p + f_n + f_p + t_n))
+    precision = t_p/(t_p + f_p)
+    recall = t_p/(t_p + f_n)
+    l_f1_score.append(2*((precision*recall)/(precision+recall)))
 
 #Print performance measures
 validation_output_dict = loading_weights.build_dict(
