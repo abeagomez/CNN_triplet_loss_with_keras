@@ -59,7 +59,7 @@ for epoch in range(num_epochs):
 #Print performance measures
 validation_output_dict = loading_weights.build_dict(
     "triplet_loss_sigmoid_weights", val_images, val_labels)
-alpha = 0.1
+alpha = 0.5
 loading_weights.print_performance_measures(validation_output_dict, alpha)
 
 #Print performance measures history
