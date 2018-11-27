@@ -37,7 +37,7 @@ def build_model(img_x, img_y):
     dense1 = Dense(4024, activation='relu')(flatten)
     dense2 = Dense(512, activation='relu')(dense1)
     merged_fc = concatenate([dense1, dense2])
-    hash_fc = Dense(100, activation="sigmoid")(merged_fc)
+    hash_fc = Dense(50, activation="sigmoid")(merged_fc)
 
     anchor = Input(shape=(img_x, img_y, 3))
     positive = Input(shape=(img_x, img_y, 3))

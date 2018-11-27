@@ -27,7 +27,7 @@ def build_model(img_x, img_y):
     dense1 = Dense(4024, activation='relu')(flatten)
     dense2 = Dense(512, activation='sigmoid')(dense1)
     merged_fc = concatenate([dense1, dense2])
-    hash_fc = Dense(100, activation="sigmoid")(merged_fc)
+    hash_fc = Dense(50, activation="sigmoid")(merged_fc)
 
     model = Model(inputs=[input_shape], outputs=[hash_fc])
 

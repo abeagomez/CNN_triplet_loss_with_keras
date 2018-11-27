@@ -29,7 +29,7 @@ l_accuracy, l_precision, l_recall, l_f1_score = [], [], [], []
 
 history = CNN_triplet_loss_functional.AccuracyHistory()
 num_epochs = 30
-alpha = 0.5
+alpha = 0.05
 for epoch in range(num_epochs):
     print('Epoch %s' % epoch)
     model.fit(triplets,
