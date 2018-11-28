@@ -26,10 +26,10 @@ print(model.summary())
 
 #declare arrays to store accuracy, precision, recall and F1 score
 l_accuracy, l_precision, l_recall, l_f1_score = [], [], [], []
-
+l_tp, l_tn, l_fp, l_fn = [], [], [], []
 history = CNN_triplet_loss_functional.AccuracyHistory()
 num_epochs = 25
-alpha = 0.01
+alpha = 0.05
 for epoch in range(num_epochs):
     print('Epoch %s' % epoch)
     model.fit(triplets,
@@ -48,7 +48,13 @@ for epoch in range(num_epochs):
         validation_output_dict, alpha)
     f_p, t_n = loading_weights.false_positives_and_true_negatives(
         validation_output_dict, alpha)
+
     loading_weights.print_performance_measures(validation_output_dict, alpha)
+
+    l_tp.append(t_p)
+    l_tn.append(t_n)
+    l_fp.append(f_p)
+    l_fn.append(f_n)
     l_precision.append(t_p/(t_p + f_p))
     l_recall.append(t_p/(t_p + f_n))
     l_accuracy.append((t_p + t_n)/(t_p + f_n + f_p + t_n))
@@ -57,11 +63,23 @@ for epoch in range(num_epochs):
     l_f1_score.append(2*((precision*recall)/(precision+recall)))
 
 #Print performance measures
-validation_output_dict = loading_weights.build_dict(
-    "triplet_loss_sigmoid_weights", val_images, val_labels)
-loading_weights.print_performance_measures(validation_output_dict, alpha)
+#validation_output_dict = loading_weights.build_dict(
+#    "triplet_loss_sigmoid_weights", val_images, val_labels)
+#loading_weights.print_performance_measures(validation_output_dict, alpha)
 
 #Print performance measures history
+print("")
+print("True positives")
+print(l_tp)
+print("")
+print("True negatives")
+print(l_tn)
+print("")
+print("False, positives")
+print(l_fp)
+print("")
+print("False Negatives")
+print(l_fn)
 print("")
 print("Precision History")
 print(l_precision)
