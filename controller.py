@@ -28,8 +28,8 @@ print(model.summary())
 l_accuracy, l_precision, l_recall, l_f1_score = [], [], [], []
 
 history = CNN_triplet_loss_functional.AccuracyHistory()
-num_epochs = 30
-alpha = 0.05
+num_epochs = 25
+alpha = 0.01
 for epoch in range(num_epochs):
     print('Epoch %s' % epoch)
     model.fit(triplets,
@@ -48,7 +48,7 @@ for epoch in range(num_epochs):
         validation_output_dict, alpha)
     f_p, t_n = loading_weights.false_positives_and_true_negatives(
         validation_output_dict, alpha)
-
+    loading_weights.print_performance_measures(validation_output_dict, alpha)
     l_precision.append(t_p/(t_p + f_p))
     l_recall.append(t_p/(t_p + f_n))
     l_accuracy.append((t_p + t_n)/(t_p + f_n + f_p + t_n))
