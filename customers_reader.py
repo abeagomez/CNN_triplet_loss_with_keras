@@ -15,13 +15,63 @@ def get_images_pair(line, combinations, shuffled):
     return np.array([img1, img2]), label
 
 def fill_scores(lines_no, combinations, shuffled, weights):
+    n = 0
+    s_list = []
     for i in range(1, lines_no + 1):
         imgs, l = get_images_pair(i, combinations, shuffled)
         score = loading_weights.regular_score(weights, imgs)
+        s_list.append((score, l))
+        n += 1
+        if n == 5000:
+            for item in s_list:
+                with open('cutomer_scores.txt', 'a') as file:
+                    file.write(str(item[0]) + " " + item[1] + "\n")
+            n = 0
+            s_list = []
+    for item in s_list:
         with open('cutomer_scores.txt', 'a') as file:
-            file.write(str(score) + " " + l + "\n")
+            file.write(str(item[0]) + " " + item[1] + "\n")
+
+def get_images(addr_file, lines_no):
+    images = []
+    for line in range(1, lines_no+1):
+        path = linecache.getline(addr_file, line).split()[0]
+        img = cv2.imread(path, cv2.IMREAD_COLOR)
+        img = cv2.resize(img, (60, 160))
+        images.append(img)
+    return images
+
+def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
+    comb=[]
+    images = get_images(shuffled, images_no)
+    for line in range(1, lines_no +1):
+        directions = linecache.getline(combinations, line).split()
+        comb.append(directions)
+    #comb = [comb[i:i+5000] for i in range(0, len(comb), 5000)]
+    n = 0
+    s_list = []
+    for i in comb:
+        img1, img2, l = images[int(i[0])], images[int(i[1])], i[2]
+        imgs = np.array([img1, img2])
+        score = loading_weights.regular_score(weights, imgs)
+        s_list.append((score, l))
+        n += 1
+        if n == 5000:
+            for item in s_list:
+                with open('combinations0_scores.txt', 'a') as file:
+                    file.write(str(item[0]) + " " + item[1] + "\n")
+            n = 0
+            s_list = []
+    for item in s_list:
+        with open('combinations0_scores.txt', 'a') as file:
+            file.write(str(item[0]) + " " + item[1] + "\n")
+
 
 
 #979329
-fill_scores(979329, "combinations0.txt", "shuffled0.txt",
-                        "triplet_loss_sigmoid_weights")
+#fill_scores(979329, "combinations0.txt", "shuffled0.txt",
+#                        "triplet_loss_sigmoid_weights")
+
+
+fill_all_images(979329, "combinations0.txt", "shuffled0.txt",
+            "triplet_loss_sigmoid_weights", 99552)

@@ -7,4 +7,4 @@
 *.json
 *.png
 *.db
-
+*.DS_Store

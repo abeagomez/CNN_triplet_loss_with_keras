@@ -115,6 +115,15 @@ def regular_score(weights, imgs, distance=distance.euclidean):
     out1, out2 = get_model_output(weights, imgs)
     return distance(out1, out2)
 
+def set_of_scores(weights, imgs, distance=distance.euclidean):
+    out = get_model_output(weights, imgs)
+    out1 = out[0::2]
+    out2 = out[1::2]
+    d = []
+    for i in range(len(out1)):
+        d.append(distance(out1[i], out2[i]))
+    return d
+
 def ranks_list(d, distance=distance.euclidean):
     gallery = []
     for k in d:
