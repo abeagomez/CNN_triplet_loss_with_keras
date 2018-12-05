@@ -9,8 +9,11 @@ from keras.models import Sequential
 import triplets_mining
 from keras.layers import Lambda
 import numpy as np
+import random as rd
 import os
 from scipy.spatial import distance
+
+np.random.seed(7)
 
 def build_model(img_x, img_y):
     input_shape = Input(shape=(img_x, img_y, 3))
@@ -84,7 +87,6 @@ def true_positives_and_false_negatives(d, alpha, distance=distance.euclidean):
                     f_n += 1
     return t_p, f_n
 
-
 def false_positives_and_true_negatives(d, alpha, distance=distance.euclidean):
     f_p, t_n = 0, 0
     for k in d:
@@ -94,6 +96,48 @@ def false_positives_and_true_negatives(d, alpha, distance=distance.euclidean):
             t_n += t2
     return f_p, t_n
 
+def scores(d, distance = distance.euclidean):
+    score = []
+    for k in d:
+        for i in range(0, len(d[k])):
+            for j in range(i+1, len(d[k])):
+                if i != j:
+                    score.append((1, distance(d[k][i], d[k][j])))
+    for k in d:
+        for i in range(0, len(d[k])):
+            for key in d:
+                if key != k:
+                    for element in d[key]:
+                        score.append((0, distance(element, d[k][i])))
+    return score
+
+def regular_score(weights, imgs, distance=distance.euclidean):
+    out1, out2 = get_model_output(weights, imgs)
+    return distance(out1, out2)
+
+def ranks_list(d, distance=distance.euclidean):
+    gallery = []
+    for k in d:
+        gallery.append(d[k][np.random.randint(0, len(d[k]))])
+    ranks = []
+    n = 0
+    while n < 100:
+        n += 1
+        probe = []
+        for k in d:
+            probe.append(d[k][np.random.randint(0, len(d[k]))])
+        for i in range(len(probe)):
+            ranks.append(check_rank(probe[i], i, gallery, distance))
+    return ranks
+
+def check_rank(item, index, gallery, distance):
+    rank = 1
+    d = distance(item, gallery[index])
+    for i in range(len(gallery)):
+        if i != index:
+            if distance(item, gallery[i]) < d:
+                rank += 1
+    return rank
 
 def __check_all_keys__(d, k, index, alpha, distance):
     f_p, t_n = 0, 0
@@ -106,7 +150,7 @@ def __check_all_keys__(d, k, index, alpha, distance):
                     f_p += 1
     return f_p, t_n
 
-def get_model_output(weights_file, x_train, x_labels, img_x=60, img_y=160, save=False, data_type=0):
+def get_model_output(weights_file, x_train, x_labels = None, img_x=60, img_y=160, save=False, data_type=0):
     """
     weights_file: name of the files where the weights are storaged
     data: data input for the network
