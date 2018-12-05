@@ -13,6 +13,9 @@ import random as rd
 import os
 from scipy.spatial import distance
 
+os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+
 np.random.seed(7)
 
 def build_model(img_x, img_y):
