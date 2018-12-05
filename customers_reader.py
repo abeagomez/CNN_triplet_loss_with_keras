@@ -47,25 +47,21 @@ def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
     for line in range(1, lines_no +1):
         directions = linecache.getline(combinations, line).split()
         comb.append(directions)
-    #comb = [comb[i:i+5000] for i in range(0, len(comb), 5000)]
-    n = 0
-    s_list = []
-    for i in comb:
-        img1, img2, l = images[int(i[0])], images[int(i[1])], i[2]
-        imgs = np.array([img1, img2])
-        score = loading_weights.regular_score(weights, imgs)
-        s_list.append((score, l))
-        n += 1
-        if n == 5000:
-            for item in s_list:
-                with open('combinations0_scores.txt', 'a') as file:
-                    file.write(str(item[0]) + " " + item[1] + "\n")
-            n = 0
-            s_list = []
-    for item in s_list:
-        with open('combinations0_scores.txt', 'a') as file:
-            file.write(str(item[0]) + " " + item[1] + "\n")
+    comb = [comb[i:i+5000] for i in range(0, len(comb), 5000)]
 
+    labels_list = []
+    images_list = []
+    for l_triplets in comb:
+        for triplet in l_triplets:
+            labels_list.append(triplet[2])
+            images_list.append(images[int(triplet[0])])
+            images_list.append(images[int(triplet[0])])
+        scores_list = loading_weights.set_of_scores(weights, images_list)
+        for i in range(len(scores_list)):
+            with open('cutomer_scores.txt', 'a') as file:
+                file.write(str(scores_list[i]) + " " + labels_list[i] + "\n")
+        labels_list = []
+        images_list = []
 
 
 #979329
