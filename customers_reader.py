@@ -58,7 +58,7 @@ def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
             images_list.append(images[int(triplet[1])])
         scores_list = loading_weights.set_of_scores(weights, np.array(images_list))
         for i in range(len(scores_list)):
-            with open('customer_scores.txt', 'a') as file:
+            with open('combinations1_scores.txt', 'a') as file:
                 file.write(str(scores_list[i]) + " " + labels_list[i] + "\n")
         labels_list = []
         images_list = []
@@ -69,5 +69,5 @@ def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
 #                        "triplet_loss_sigmoid_weights")
 
 
-fill_all_images(979329, "combinations0.txt", "shuffled0.txt",
+fill_all_images(979329, "combinations1.txt", "shuffled1.txt",
             "triplet_loss_sigmoid_weights", 99552)

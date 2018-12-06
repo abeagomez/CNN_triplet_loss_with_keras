@@ -14,7 +14,7 @@ import os
 from scipy.spatial import distance
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
 np.random.seed(7)
 
@@ -124,7 +124,6 @@ def set_of_scores(weights, imgs, distance=distance.euclidean):
     out2 = out[1::2]
     d = []
     for i in range(len(out1)):
-        print(distance(out1[i], out2[i]))
         d.append(distance(out1[i], out2[i]))
     return d
 
