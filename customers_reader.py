@@ -69,5 +69,5 @@ def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
 #                        "triplet_loss_sigmoid_weights")
 
 
-fill_all_images(979329, "combinations1.txt", "shuffled1.txt",
-            "triplet_loss_sigmoid_weights", 99552)
+fill_all_images(1119297, "combinations1.txt", "shuffled1.txt",
+            "triplet_loss_sigmoid_weights", 113664)
