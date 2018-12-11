@@ -34,21 +34,21 @@ def get_cnn_input(lines_no, combinations, train):
     return triplets_mining.prepare_triplets(60, 160, triplets)
 
 
-
-l, triplets = get_cnn_input(199000, "train_combinations0.txt", "train0.txt")
+#199k
+l, triplets = get_cnn_input(50000, "train_combination0.txt", "train0.txt")
 
 #Build the model using triplet loss and sigmoid activation
 model = CNN_triplet_loss_functional.build_model(60, 160)
 print(model.summary())
 
 history = CNN_triplet_loss_functional.AccuracyHistory()
-num_epochs = 25
+num_epochs = 15
 alpha = 0.05
 for epoch in range(num_epochs):
     print('Epoch %s' % epoch)
     model.fit(triplets,
               y=np.zeros(l),
-              batch_size=120,
+              batch_size=250,
               epochs=1,
               verbose=1,
               callbacks=[history])
