@@ -24,12 +24,12 @@ def fill_scores(lines_no, combinations, shuffled, weights):
         n += 1
         if n == 5000:
             for item in s_list:
-                with open('cutomer_scores.txt', 'a') as file:
+                with open('cutomer_trained_scores.txt', 'a') as file:
                     file.write(str(item[0]) + " " + item[1] + "\n")
             n = 0
             s_list = []
     for item in s_list:
-        with open('cutomer_scores.txt', 'a') as file:
+        with open('cutomer_trained_scores.txt', 'a') as file:
             file.write(str(item[0]) + " " + item[1] + "\n")
 
 def get_images(addr_file, lines_no):
@@ -58,7 +58,7 @@ def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
             images_list.append(images[int(triplet[1])])
         scores_list = loading_weights.set_of_scores(weights, np.array(images_list))
         for i in range(len(scores_list)):
-            with open('continuous1_scores.txt', 'a') as file:
+            with open('validation_scores.txt', 'a') as file:
                 file.write(str(scores_list[i]) + " " + labels_list[i] + "\n")
         labels_list = []
         images_list = []
@@ -69,5 +69,5 @@ def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
 #                        "triplet_loss_sigmoid_weights")
 
 
-fill_all_images(113115, "continuous1.txt", "list1.txt",
-            "triplet_loss_sigmoid_weights", 113664)
+fill_all_images(398208, "val_combination0.txt", "val0.txt",
+                "triplet_loss_sigmoid_weights_customers_training", 99552)
