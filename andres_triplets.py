@@ -21,7 +21,7 @@ def get_images_triplets(line, combinations, train):
 
 def get_triplets(lines_no, combinations, train):
     anchor, pos, neg = [], [], []
-    for i in range(lines_no):
+    for i in range(1, lines_no+1):
         triplet = get_images_triplets(i, combinations, train)
         anchor.append(triplet[0])
         pos.append(triplet[1])
