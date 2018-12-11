@@ -41,7 +41,7 @@ def get_images(addr_file, lines_no):
         images.append(img)
     return images
 
-def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
+def fill_all_images(lines_no, combinations, shuffled, weights, images_no, output):
     comb=[]
     images = get_images(shuffled, images_no)
     for line in range(1, lines_no +1):
@@ -58,7 +58,7 @@ def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
             images_list.append(images[int(triplet[1])])
         scores_list = loading_weights.set_of_scores(weights, np.array(images_list))
         for i in range(len(scores_list)):
-            with open('validation_scores.txt', 'a') as file:
+            with open(output, 'a') as file:
                 file.write(str(scores_list[i]) + " " + labels_list[i] + "\n")
         labels_list = []
         images_list = []
@@ -68,6 +68,15 @@ def fill_all_images(lines_no, combinations, shuffled, weights, images_no):
 #fill_scores(979329, "combinations0.txt", "shuffled0.txt",
 #                        "triplet_loss_sigmoid_weights")
 
+#'validation_scores.txt'
+fill_all_images(979329, "combinations0.txt", "shuffled0.txt",
+                "triplet_loss_sigmoid_weights_customers_training", 99552, "combinations0_scores.txt")
 
-fill_all_images(398208, "val_combination0.txt", "val0.txt",
-                "triplet_loss_sigmoid_weights_customers_training", 99552)
+fill_all_images(1119297, "combinations1.txt", "shuffled1.txt",
+                "triplet_loss_sigmoid_weights_customers_training", 113664, "combinations1_scores.txt")
+
+fill_all_images(99039, "continuous0.txt", "list0.txt",
+                "triplet_loss_sigmoid_weights_customers_training", 99552, "continuous0_scores.txt")
+
+fill_all_images(113115, "continuous1.txt", "list1.txt",
+                "triplet_loss_sigmoid_weights_customers_training", 113664, "continuous1_scores.txt")
