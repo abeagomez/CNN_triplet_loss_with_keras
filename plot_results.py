@@ -369,11 +369,12 @@ plt.plot(x, y, 'r-o')
 #CMC para los primeros 50 ranks con 48bits
 CMC_results = [0.4557, 0.5968, 0.6492, 0.7025, 0.7406, 0.7724, 0.8009, 0.8217, 0.8402, 0.8577, 0.8627, 0.872, 0.8824, 0.8954, 0.903, 0.9102, 0.9174, 0.9216, 0.9282, 0.9339, 0.9345, 0.9356, 0.9381, 0.9447,
                 0.9456, 0.9467, 0.9496, 0.9513, 0.9545, 0.9572, 0.9594, 0.9614, 0.9636, 0.9646, 0.9655, 0.9664, 0.9686, 0.97, 0.9716, 0.9732, 0.979, 0.9822, 0.9833, 0.9884, 0.9895, 0.9931, 0.9943, 0.9958, 0.9963, 0.9975]
-
+cmc_paper = [0.7420, 0.9227, 0.9424, 0.9592]
 plt.figure(7)
 plt.xlabel('Rank')
 plt.ylabel('Identification Rate')
 plt.ylim(0, 1)
-plt.plot([i for i in range(0, 50)], CMC_results, 'r-')
-plt.plot([i for i in range(0,50,5)], CMC_results[0::5], 'ro')
+plt.plot([i for i in range(1, 51)], CMC_results, 'r-')
+plt.plot([i for i in range(1,51,5)], CMC_results[0::5], 'ro')
+plt.plot([i for i in range(1,21,5)],cmc_paper, "b->")
 plt.show()

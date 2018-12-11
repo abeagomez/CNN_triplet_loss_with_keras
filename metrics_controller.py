@@ -4,15 +4,16 @@ import loading_weights
 import numpy as np
 from operator import itemgetter
 from more_itertools import unique_everseen
+from scipy.spatial import distance
 import mAP
 
 #get validation set
-val_images, val_labels = data_reader.get_validation_set()
+#val_images, val_labels = data_reader.get_validation_set()
 
 #Build dictionary with the network output for the validation set
 #The dict structure is label => list of images
-validation_output_dict = loading_weights.build_dict(
-    "triplet_loss_sigmoid_weights", val_images, val_labels)
+#validation_output_dict = loading_weights.build_dict(
+#    "triplet_loss_sigmoid_weights", val_images, val_labels)
 
 # Generating scores and sorting them by score_value.
 # After that we can compute the alphas
@@ -26,49 +27,49 @@ def get_alpha(n, scores):
         if scores[i][0] != 0:
             c += 1
             if c == n:
-                print(scores[i][1])
-                break
+                return scores[i][1]
 
 def compute_alphas(scores):
+    alphas = []
     for i in range(len(scores)-1, 0, -1):
         if scores[i][0] != 0:
-            print("primer alpha")
-            print(scores[i][1])
+            alphas.append(scores[i][1])
             break
     pos = 0
     for i in scores:
         if i[0] == 1:
             pos +=1
-    get_alpha(pos*5//100, scores)
-    get_alpha(pos*10//100, scores)
-    get_alpha(pos*15//100, scores)
-    get_alpha(pos*20//100, scores)
-    get_alpha(pos*25//100, scores)
-    get_alpha(pos*30//100, scores)
-    get_alpha(pos*35//100, scores)
-    get_alpha(pos*40//100, scores)
-    get_alpha(pos*45//100, scores)
-    get_alpha(pos*50//100, scores)
-    get_alpha(pos*55//100, scores)
-    get_alpha(pos*50//100, scores)
-    get_alpha(pos*60//100, scores)
-    get_alpha(pos*65//100, scores)
-    get_alpha(pos*70//100, scores)
-    get_alpha(pos*75//100, scores)
-    get_alpha(pos*80//100, scores)
-    get_alpha(pos*83//100, scores)
-    get_alpha(pos*85//100, scores)
-    get_alpha(pos*87//100, scores)
-    get_alpha(pos*90//100, scores)
-    get_alpha(pos*91//100, scores)
-    get_alpha(pos*92//100, scores)
-    get_alpha(pos*93//100, scores)
-    get_alpha(pos*94//100, scores)
-    get_alpha(pos*95//100, scores)
-    get_alpha(pos*96//100, scores)
-    get_alpha(pos*97//100, scores)
-    get_alpha(pos*98//100, scores)
-    get_alpha(pos*99//100, scores)
+    alphas.append(get_alpha(pos*5//100, scores))
+    alphas.append(get_alpha(pos*10//100, scores))
+    alphas.append(get_alpha(pos*15//100, scores))
+    alphas.append(get_alpha(pos*20//100, scores))
+    alphas.append(get_alpha(pos*25//100, scores))
+    alphas.append(get_alpha(pos*30//100, scores))
+    alphas.append(get_alpha(pos*35//100, scores))
+    alphas.append(get_alpha(pos*40//100, scores))
+    alphas.append(get_alpha(pos*45//100, scores))
+    alphas.append(get_alpha(pos*50//100, scores))
+    alphas.append(get_alpha(pos*55//100, scores))
+    alphas.append(get_alpha(pos*50//100, scores))
+    alphas.append(get_alpha(pos*60//100, scores))
+    alphas.append(get_alpha(pos*65//100, scores))
+    alphas.append(get_alpha(pos*70//100, scores))
+    alphas.append(get_alpha(pos*75//100, scores))
+    alphas.append(get_alpha(pos*80//100, scores))
+    alphas.append(get_alpha(pos*83//100, scores))
+    alphas.append(get_alpha(pos*85//100, scores))
+    alphas.append(get_alpha(pos*87//100, scores))
+    alphas.append(get_alpha(pos*90//100, scores))
+    alphas.append(get_alpha(pos*91//100, scores))
+    alphas.append(get_alpha(pos*92//100, scores))
+    alphas.append(get_alpha(pos*93//100, scores))
+    alphas.append(get_alpha(pos*94//100, scores))
+    alphas.append(get_alpha(pos*95//100, scores))
+    alphas.append(get_alpha(pos*96//100, scores))
+    alphas.append(get_alpha(pos*97//100, scores))
+    alphas.append(get_alpha(pos*98//100, scores))
+    alphas.append(get_alpha(pos*99//100, scores))
+    return alphas
 
 #compute_alphas(scores)
 
@@ -121,11 +122,11 @@ alpha_values_48 = [0.5139309763908386, 0.3141639232635498, 0.2696551978588104,
 #                     0.0938996970653534,0.09012474864721298,0.08377117663621902,
 #                     0.07734707742929459]
 
-def get_validation_measures():
+def get_validation_measures(d, alphas, distance=distance.euclidean):
     precision, recall, accuracy = [], [], []
-    for i in alpha_values_48:
-        t_p, f_n = loading_weights.true_positives_and_false_negatives(validation_output_dict, i)
-        f_p, t_n = loading_weights.false_positives_and_true_negatives(validation_output_dict, i)
+    for i in alphas:
+        t_p, f_n = loading_weights.true_positives_and_false_negatives(d, i, distance)
+        f_p, t_n = loading_weights.false_positives_and_true_negatives(d, i, distance)
         precision.append(t_p/(t_p + f_p))
         recall.append(t_p/(t_p + f_n))
         accuracy.append((t_p + t_n)/(t_p + f_n + f_p + t_n))

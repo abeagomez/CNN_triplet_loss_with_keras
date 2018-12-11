@@ -11,10 +11,11 @@ training_data = data_reader.get_training_set()
 images, labels = data_reader.increase_data(training_data[0], training_data[1])
 
 #get random triplets for the first iteration of mining
+#triplets is 3 np arrays (anchor, pos, neg)
 triplets = triplets_mining.get_random_triplets(35000, images, labels)
 
 #Get triplets ready as input for the network
-# l is the number of elements in each triplet
+#l is the number of elements in each subset of triplets (len(triplets[0]))
 l, triplets =triplets_mining.prepare_triplets(60, 160, triplets)
 
 #get validation set
