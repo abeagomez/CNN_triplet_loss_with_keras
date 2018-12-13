@@ -8,9 +8,9 @@ import CNN_triplet_loss_functional
 def get_images_triplets(line, combinations, train):
     directions = linecache.getline(combinations, line).split()
     anchor_addr, pos_addr, neg_addr, cam = directions
-    anchor = linecache.getline(train, int(anchor_addr) + 1).split()[0]
-    positive = linecache.getline(train, int(pos_addr) + 1).split()[0]
-    negative = linecache.getline(train, int(neg_addr) + 1).split()[0]
+    anchor = linecache.getline(train, int(anchor_addr)).split()[0]
+    positive = linecache.getline(train, int(pos_addr)).split()[0]
+    negative = linecache.getline(train, int(neg_addr)).split()[0]
     anchor = cv2.imread(anchor, cv2.IMREAD_COLOR)
     anchor = cv2.resize(anchor, (60, 160))
     positive = cv2.imread(positive, cv2.IMREAD_COLOR)
@@ -35,7 +35,7 @@ def get_cnn_input(lines_no, combinations, train):
 
 
 #199k
-l, triplets = get_cnn_input(50000, "train_combination0.txt", "train0.txt")
+l, triplets = get_cnn_input(100, "train_combination0.txt", "train0.txt")
 
 #Build the model using triplet loss and sigmoid activation
 model = CNN_triplet_loss_functional.build_model(60, 160)
