@@ -141,8 +141,9 @@ def central_tendency_measures(outputs_list):
     return measures
 
 
-outputs_list = get_sample_output(2500)
+outputs_list = get_sample_output(2)
 measures = central_tendency_measures(outputs_list)
-with open("central_measures_results.txt") as file:
+
+with open("central_measures_results.txt", "a") as file:
     for i in sorted(measures, key=itemgetter(1)):
         file.write(str(i) + "\n")

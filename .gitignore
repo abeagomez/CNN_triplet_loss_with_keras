@@ -8,3 +8,12 @@
 *.png
 *.db
 *.DS_Store
+
+andres/
+annotated/
+annotated_lists_for_computation/
+results/
+detected/
+labeled/
+MarkedDataSet/
+andres_triplets.py
